@@ -1,6 +1,5 @@
 "use client";
 
-
 import Link from "next/link";
 import { useState } from "react";
 import { useSignIn } from "@clerk/nextjs";
@@ -10,10 +9,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
 
-
 const signInSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  password: z
+    .string()
+    .min(6, { message: "Password must be at least 6 characters" }),
 });
 
 export default function SignInPage() {
@@ -24,7 +24,11 @@ export default function SignInPage() {
 
   const { signIn, isLoaded } = useSignIn();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof signInSchema>>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
   });
 
@@ -34,12 +38,25 @@ export default function SignInPage() {
     setAuthError(null);
 
     try {
-      const result = await signIn.create({ identifier: data.email, password: data.password });
+      const result = await signIn.create({
+        identifier: data.email,
+        password: data.password,
+      });
       if (result.status === "complete") {
-        router.push("/dashboard");    // Redirect after successful sign-in
+        router.push("/dashboard"); // Redirect after successful sign-in
       }
-    } catch (error: any) {
-      setAuthError(error.errors?.[0]?.message || "Sign-in failed. Please try again.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setAuthError(error.message || "Sign-in failed. Please try again.");
+      } else if (typeof error === "object" && error && "errors" in error) {
+        // if it's a Clerk or API-style error
+        const errObj = error as { errors?: { message?: string }[] };
+        setAuthError(
+          errObj.errors?.[0]?.message || "Sign-in failed. Please try again."
+        );
+      } else {
+        setAuthError("Sign-in failed. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -62,7 +79,9 @@ export default function SignInPage() {
             className="input input-bordered w-full"
             {...register("email")}
           />
-          {errors.email && <span className="text-danger text-sm">{errors.email.message}</span>}
+          {errors.email && (
+            <span className="text-danger text-sm">{errors.email.message}</span>
+          )}
         </div>
 
         <div className="form-control w-full">
@@ -79,10 +98,18 @@ export default function SignInPage() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
           </div>
-          {errors.password && <span className="text-danger text-sm">{errors.password.message}</span>}
+          {errors.password && (
+            <span className="text-danger text-sm">
+              {errors.password.message}
+            </span>
+          )}
         </div>
 
         <button

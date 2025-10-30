@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ files: userFiles });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in /api/files:", error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Unknown error", files: [] },

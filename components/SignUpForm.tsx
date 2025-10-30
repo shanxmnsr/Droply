@@ -9,7 +9,14 @@ import { signUpSchema } from "@/schemas/signUpSchema";
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { EyeOff, Eye, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  EyeOff,
+  Eye,
+  Mail,
+  Lock,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -17,7 +24,9 @@ export default function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [authError, setAuthError] = useState<string | null>(null);
-  const [verificationError, setVerificationError] = useState<string | null>(null);
+  const [verificationError, setVerificationError] = useState<string | null>(
+    null
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signUp, isLoaded, setActive } = useSignUp();
@@ -36,32 +45,55 @@ export default function SignUpForm() {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      await signUp.create({ emailAddress: data.email, password: data.password });
+      await signUp.create({
+        emailAddress: data.email,
+        password: data.password,
+      });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
       setVerifying(true);
-    } catch (error: any) {
-      setAuthError(error.errors?.[0]?.message || "Signup failed. Please try again.");
+    } catch (error: unknown) {
+      const message =
+        (typeof error === "object" &&
+          error &&
+          "errors" in error &&
+          (error as any).errors?.[0]?.message) ||
+        (error instanceof Error
+          ? error.message
+          : "Signup failed. Please try again.");
+      setAuthError(message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleVerificationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleVerificationSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
     if (!isLoaded || !signUp) return;
     setIsSubmitting(true);
     setAuthError(null);
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
+      const result = await signUp.attemptEmailAddressVerification({
+        code: verificationCode,
+      });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else {
         setVerificationError("Verification could not be completed.");
       }
-    } catch (error: any) {
-      setVerificationError(error.errors?.[0]?.message || "Verification failed. Please try again.");
+    } catch (error: unknown) {
+      const message =
+        (typeof error === "object" &&
+          error &&
+          "errors" in error &&
+          (error as any).errors?.[0]?.message) ||
+        (error instanceof Error
+          ? error.message
+          : "Verification failed. Please try again.");
+      setVerificationError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +122,11 @@ export default function SignUpForm() {
             className="input input-bordered w-full"
             autoFocus
           />
-          <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
+          <button
+            type="submit"
+            className="btn btn-primary w-full"
+            disabled={isSubmitting}
+          >
             {isSubmitting ? "Verifying..." : "Verify Email"}
           </button>
         </form>
@@ -99,7 +135,10 @@ export default function SignUpForm() {
           <button
             className="text-primary hover:underline"
             onClick={async () => {
-              if (signUp) await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+              if (signUp)
+                await signUp.prepareEmailAddressVerification({
+                  strategy: "email_code",
+                });
             }}
           >
             Resend
@@ -111,7 +150,9 @@ export default function SignUpForm() {
 
   return (
     <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
-      <h1 className="text-2xl font-bold text-default-900 text-center mb-2">Unlock Your Account</h1>
+      <h1 className="text-2xl font-bold text-default-900 text-center mb-2">
+        Unlock Your Account
+      </h1>
       <p className="text-default-500 text-center mb-4">
         Sign up today and take control of your photos.
       </p>
@@ -132,7 +173,11 @@ export default function SignUpForm() {
               className="input input-bordered w-full"
               {...register("email")}
             />
-            {errors.email && <span className="text-danger text-sm">{errors.email.message}</span>}
+            {errors.email && (
+              <span className="text-danger text-sm">
+                {errors.email.message}
+              </span>
+            )}
           </div>
         </div>
 
@@ -152,15 +197,25 @@ export default function SignUpForm() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
-            {errors.password && <span className="text-danger text-sm">{errors.password.message}</span>}
+            {errors.password && (
+              <span className="text-danger text-sm">
+                {errors.password.message}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="form-control w-full">
           <label className="label">
-            <span className="label-text text-default-900">Confirm Password</span>
+            <span className="label-text text-default-900">
+              Confirm Password
+            </span>
           </label>
           <div className="relative">
             <input
@@ -174,10 +229,16 @@ export default function SignUpForm() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
-              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
             {errors.passwordConfirmation && (
-              <span className="text-danger text-sm">{errors.passwordConfirmation.message}</span>
+              <span className="text-danger text-sm">
+                {errors.passwordConfirmation.message}
+              </span>
             )}
           </div>
         </div>
@@ -185,14 +246,18 @@ export default function SignUpForm() {
         <div className="flex items-start gap-2">
           <CheckCircle className="h-5 w-5 text-primary mt-1" />
           <p className="text-sm text-default-600">
-            Creating an account means you accept our Terms of Service and Privacy Policy.
+            Creating an account means you accept our Terms of Service and
+            Privacy Policy.
           </p>
         </div>
 
         <div id="clerk-captcha" className="my-2"></div>
 
-
-        <button type="submit" className="px-6 w-full py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition" disabled={isSubmitting}>
+        <button
+          type="submit"
+          className="px-6 w-full py-3 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Creating account..." : "Create Account"}
         </button>
       </form>

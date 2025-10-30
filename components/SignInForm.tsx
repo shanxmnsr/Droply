@@ -6,7 +6,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signInSchema } from "@/schemas/signInSchema";
-import { EyeOff, Eye, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  EyeOff,
+  Eye,
+  Mail,
+  Lock,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 
 export default function SignInForm() {
   const router = useRouter();
@@ -15,7 +22,11 @@ export default function SignInForm() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     resolver: zodResolver(signInSchema),
     defaultValues: { identifier: "", password: "" },
   });
@@ -25,15 +36,26 @@ export default function SignInForm() {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      const result = await signIn.create({ identifier: data.identifier, password: data.password });
+      const result = await signIn.create({
+        identifier: data.identifier,
+        password: data.password,
+      });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else {
         setAuthError("Hmm... something's off. Try signing in again!");
       }
-    } catch (error: any) {
-      setAuthError(error.errors?.[0]?.message || "Oops! Something went wrong while signing in.");
+    } catch (error: unknown) {
+      const message =
+        (typeof error === "object" &&
+          error &&
+          "errors" in error &&
+          (error as any).errors?.[0]?.message) ||
+        (error instanceof Error
+          ? error.message
+          : "Oops! Something went wrong while signing in.");
+      setAuthError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -65,7 +87,11 @@ export default function SignInForm() {
             className="input input-bordered w-full"
             {...register("identifier")}
           />
-          {errors.identifier && <span className="text-danger text-sm">{errors.identifier.message}</span>}
+          {errors.identifier && (
+            <span className="text-danger text-sm">
+              {errors.identifier.message}
+            </span>
+          )}
         </div>
 
         <div className="form-control w-full">
@@ -84,13 +110,25 @@ export default function SignInForm() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
             </button>
-            {errors.password && <span className="text-danger text-sm">{errors.password.message}</span>}
+            {errors.password && (
+              <span className="text-danger text-sm">
+                {errors.password.message}
+              </span>
+            )}
           </div>
         </div>
 
-        <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
+        <button
+          type="submit"
+          className="btn btn-primary w-full"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Signing in..." : "Sign In"}
         </button>
       </form>

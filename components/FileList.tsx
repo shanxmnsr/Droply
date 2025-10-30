@@ -75,13 +75,23 @@ export default function FileList({
       validFiles = validFiles.filter((f) => f && typeof f.id === "string");
 
       setFiles(validFiles);
-    } catch (error: any) {
-      console.error("Error fetching files:", error?.response?.data || error);
-      showToast(
-        "Error Loading Files",
-        error?.response?.data?.error || "Could not load files.",
-        "error"
-      );
+    } catch (error: unknown) {
+      if (typeof error === "object" && error && "response" in error) {
+        const err = error as { response?: { data?: { error?: string } } };
+        console.error("Error fetching files:", err.response?.data || error);
+        showToast(
+          "Error Loading Files",
+          err.response?.data?.error || "Could not load files.",
+          "error"
+        );
+      } else if (error instanceof Error) {
+        console.error("Error fetching files:", error.message);
+        showToast("Error Loading Files", error.message, "error");
+      } else {
+        console.error("Unknown error fetching files:", error);
+        showToast("Error Loading Files", "Could not load files.", "error");
+      }
+
       setFiles([]);
     } finally {
       setLoading(false);

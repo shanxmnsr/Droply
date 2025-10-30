@@ -52,12 +52,13 @@ export async function POST(req: Request) {
       { success: true, fileUrl: uploadResponse.url },
       { status: 200 }
     );
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "File upload failed", details: error.message },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error("Upload failed:", error.message);
+  } else {
+    console.error("Upload failed:", error);
   }
+}
+
 }
 
