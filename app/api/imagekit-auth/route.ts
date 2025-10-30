@@ -1,4 +1,4 @@
-// app/api/imagekit-auth/route.ts
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import imagekit from "@/lib/imagekit";

@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { files } from "@/lib/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
-import { imagekit } from "@/lib/imagekit";
+import imagekit from "@/lib/imagekit";
 
 export async function POST(req: Request) {
   try {
@@ -60,3 +60,4 @@ export async function POST(req: Request) {
     );
   }
 }
+
