@@ -1,50 +1,41 @@
+import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { files } from "@/lib/db/schema";
 import { v4 as uuidv4 } from "uuid";
 import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
+    const { name, parentId = null } = await req.json();
+
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
     }
 
-    const { name, parentId } = await req.json();
-
-    if (!name || name.trim() === "") {
-      return NextResponse.json(
-        { error: "Folder name is required" },
-        { status: 400 }
-      );
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Folder name is required" }, { status: 400 });
     }
 
-    const id = uuidv4();
-
+    // Insert folder into `files` table
     await db.insert(files).values({
-      id,
-      name: name.trim(),
-      path: "/",   
-      size: 0,          
-      type: "folder",   
-      fileUrl: "",      
-      thumbnail: null,
+      id: uuidv4(),
+      name,
+      parentId,
       userId,
-      parentId: parentId || null,
       isFolder: true,
       isStarred: false,
       isTrash: false,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      path: "",
+      size: 0,
+      type: "folder",
+      fileUrl: "",
+      thumbnail: "",
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Folder creation error:", error);
-    return NextResponse.json(
-      { error: "Failed to create folder" },
-      { status: 500 }
-    );
+    console.error("Folder creation failed:", error);
+    return NextResponse.json({ error: "Folder creation failed" }, { status: 500 });
   }
 }

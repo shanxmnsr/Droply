@@ -3,13 +3,12 @@
 import { Star, Trash, X, ArrowUpFromLine, ExternalLink } from "lucide-react";
 import type { File as FileType } from "@/lib/db/schema";
 
-
 interface FileActionsProps {
   file: FileType;
   onStar: (id: string) => void;
   onTrash: (id: string) => void;
   onDelete: (file: FileType) => void;
-  onShare: (file: FileType) => void;
+  onShare?: (file: FileType) => void;
 }
 
 export default function FileActions({
@@ -21,21 +20,27 @@ export default function FileActions({
 }: FileActionsProps) {
   return (
     <div className="flex flex-wrap gap-1.5 justify-end">
-      {/* Share button  */}
-      {!file.isTrash && !file.isFolder && (
+      {/* Share button */}
+      {!file.isTrash && !file.isFolder && onShare && (
         <button
-          onClick={() => onShare(file)}
+          onClick={(e) => {
+            e.stopPropagation(); // prevent row click
+            onShare(file);       // call the share function
+          }}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium shadow-sm transition"
         >
           <ExternalLink className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Share</span>
+          <span className="hidden sm:inline">Take it</span>
         </button>
       )}
 
       {/* Star / Unstar button */}
       {!file.isTrash && (
         <button
-          onClick={() => onStar(file.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStar(file.id);
+          }}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition ${
             file.isStarred
               ? "bg-yellow-400 hover:bg-yellow-500 text-white"
@@ -43,39 +48,35 @@ export default function FileActions({
           }`}
         >
           <Star
-            className={`h-3.5 w-3.5 ${
-              file.isStarred ? "fill-current" : "stroke-current"
-            }`}
+            className={`h-3.5 w-3.5 ${file.isStarred ? "fill-current" : "stroke-current"}`}
           />
-          <span className="hidden sm:inline">
-            {file.isStarred ? "Unstar" : "Star"}
-          </span>
+          <span className="hidden sm:inline">{file.isStarred ? "Unstar" : "Star"}</span>
         </button>
       )}
 
       {/* Trash / Restore button */}
       <button
-        onClick={() => onTrash(file.id)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onTrash(file.id);
+        }}
         className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition ${
           file.isTrash
             ? "bg-green-500 hover:bg-green-600 text-white"
             : "bg-red-500 hover:bg-red-600 text-white"
         }`}
       >
-        {file.isTrash ? (
-          <ArrowUpFromLine className="h-3.5 w-3.5" />
-        ) : (
-          <Trash className="h-3.5 w-3.5" />
-        )}
-        <span className="hidden sm:inline">
-          {file.isTrash ? "Restore" : "Delete"}
-        </span>
+        {file.isTrash ? <ArrowUpFromLine className="h-3.5 w-3.5" /> : <Trash className="h-3.5 w-3.5" />}
+        <span className="hidden sm:inline">{file.isTrash ? "Restore" : "Delete"}</span>
       </button>
 
       {/* Delete permanently button */}
       {file.isTrash && (
         <button
-          onClick={() => onDelete(file)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(file);
+          }}
           className="bg-red-500 hover:bg-red-600 text-white flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition"
         >
           <X className="h-3.5 w-3.5" />

@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const parentId = request.nextUrl.searchParams.get("parentId") ?? null;
 
-    let userFiles;
+    let userFiles: any[] = [];
     try {
       if (parentId) {
         userFiles = await db

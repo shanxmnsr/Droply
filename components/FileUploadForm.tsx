@@ -3,12 +3,12 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import {
-  Upload,
-  X,
   FileUp,
+  X,
   AlertTriangle,
   FolderPlus,
   ArrowRight,
+  Upload,
 } from "lucide-react";
 
 interface FileUploadFormProps {
@@ -65,7 +65,6 @@ export default function FileUploadForm({
 
   const handleUpload = async () => {
     if (!file) return;
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("userId", userId);
@@ -77,7 +76,6 @@ export default function FileUploadForm({
 
     try {
       await axios.post("/api/files/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round(
@@ -88,12 +86,13 @@ export default function FileUploadForm({
         },
       });
 
-      alert(`${file.name} uploaded successfully`);
       clearFile();
       onUploadSuccess?.();
+
+      alert(`${file.name} uploaded successfully!`);
     } catch (error) {
-      console.error("Upload failed:", error);
-      setError("Upload failed. Please try again.");
+      console.error("Error uploading file:", error);
+      setError("Failed to upload file. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -101,14 +100,14 @@ export default function FileUploadForm({
 
   const handleCreateFolder = async () => {
     if (!folderName.trim()) {
-      alert("Please enter a folder name");
+      alert("Please enter a valid folder name");
       return;
     }
 
     try {
       await axios.post("/api/folders/create", {
         name: folderName.trim(),
-        userId: userId,
+        userId,
         parentId: currentFolder,
       });
 
@@ -118,49 +117,53 @@ export default function FileUploadForm({
       onUploadSuccess?.();
     } catch (error) {
       console.error("Error creating folder:", error);
-      alert("Failed to create folder. Try again.");
+      alert("Failed to create folder. Please try again.");
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Action buttons */}
+    <div className="space-y-5">
+      {/* Action Buttons */}
       <div className="flex gap-3">
         <button
-          className="flex-1 flex gap-2 items-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
           onClick={() => setIsModalOpen(true)}
         >
-          <FolderPlus className="w-4 h-4" /> New Folder
+          <FolderPlus className="w-4 h-4 mx-2 mt-1" /> New Folder
         </button>
         <button
-          className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition flex-1 flex items-center gap-2"
+          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
           onClick={() => fileInputRef.current?.click()}
         >
-          <FileUp className="w-4 h-4" /> Add Image
+          <FileUp className="w-4 h-4 mx-2 mt-1" /> Add Image
         </button>
       </div>
 
-      {/* File drop area */}
+      {/* File Drop Area */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-all 
-          ${error ? "border-red-500 bg-red-50" : file ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-blue-300"}
-        `}
+        className={`border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-xl p-6 text-center transition-colors duration-300 ${
+          error
+            ? "border-error bg-error/10"
+            : file
+              ? "border-primary bg-primary/5"
+              : "border-base-300 hover:border-primary/40"
+        }`}
       >
         {!file ? (
-          <div>
-            <FileUp className="w-12 h-12 mx-auto text-blue-400 mb-3" />
-            <p className="text-gray-600">
+          <div className="space-y-3">
+            <FileUp className="w-12 h-12 mx-auto text-primary/70" />
+            <p className="text-base text-gray-600 text-sm">
               Drag & drop your image here, or{" "}
               <span
-                className="text-blue-500 cursor-pointer underline"
+                className="text-primary font-semibold cursor-pointer hover:underline"
                 onClick={() => fileInputRef.current?.click()}
               >
                 browse
               </span>
             </p>
-            <p className="text-xs text-gray-400 mt-1">Images up to 5MB</p>
+            <p className="text-xs text-gray-400">Images up to 5MB</p>
             <input
               type="file"
               ref={fileInputRef}
@@ -173,7 +176,9 @@ export default function FileUploadForm({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <FileUp className="w-5 h-5 text-blue-500" />
+                <div className="p-2 bg-primary/10 rounded-md">
+                  <FileUp className="w-5 h-5 text-primary" />
+                </div>
                 <div className="text-left">
                   <p className="font-medium text-sm">{file.name}</p>
                   <p className="text-xs text-gray-500">
@@ -181,8 +186,8 @@ export default function FileUploadForm({
                   </p>
                 </div>
               </div>
-              <button onClick={clearFile} className="btn btn-ghost btn-xs text-gray-500">
-                <X className="w-4 h-4" />
+              <button onClick={clearFile} className="btn btn-ghost btn-sm">
+                <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
 
@@ -202,46 +207,63 @@ export default function FileUploadForm({
             )}
 
             <button
-              className="px-20 py-2 w-full bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition flex-1 flex items-center gap-2"
+              className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
               onClick={handleUpload}
               disabled={uploading || !!error}
             >
-              {uploading ? `Uploading... ${progress}%` : <>Upload Image <ArrowRight className="w-4 h-4" /></>}
+              {uploading ? (
+                `Uploading... ${progress}%`
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mx-2" /> Upload Image 
+                  <ArrowRight className="w-4 h-4 mx-2 mt-1" />
+                </>
+              )}
             </button>
           </div>
         )}
       </div>
 
-      {/* Upload tips */}
+      {/* Upload Tips */}
       <div className="bg-base-200 rounded-lg p-4">
-        <h4 className="font-semibold text-sm mb-2">Tips</h4>
-        <ul className="text-xs text-gray-600 space-y-1">
+        <h4 className="text-sm font-semibold mb-2 text-gray-700">Tips</h4>
+        <ul className="text-xs text-gray-500 space-y-1">
           <li>• Images are private and only visible to you</li>
           <li>• Supported formats: JPG, PNG, GIF, WebP</li>
-          <li>• Max file size: 5MB</li>
+          <li>• Maximum file size: 5MB</li>
         </ul>
       </div>
 
-      {/* Folder modal */}
+      {/* Folder Modal */}
       {isModalOpen && (
-        <dialog open className="modal">
-          <div className="modal-box">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-              <FolderPlus className="w-5 h-5 text-blue-500" /> New Folder
+        <dialog open className="modal modal-open">
+          <div className="modal-box border border-base-300 backdrop-blur bg-base-100/90 shadow-xl">
+            <h3 className="font-bold text-lg flex items-center gap-2 mb-3">
+              <FolderPlus className="w-5 h-5 text-primary" /> New Folder
             </h3>
+            <p className="text-sm text-gray-500 mb-2">
+              Enter a name for your new folder:
+            </p>
             <input
               type="text"
-              placeholder="Enter folder name"
-              className="input input-bordered w-full mb-4 border px-3 "
+              placeholder="My folder"
+              className="input border input-bordered w-full mb-4 pl-3"
               value={folderName}
               onChange={(e) => setFolderName(e.target.value)}
             />
             <div className="modal-action">
-              <button className="px-5 py-2 bg-indigo-100 text-indigo-700 font-bold rounded-lg shadow-sm shadow-indigo-200 hover:bg-indigo-200 transition" onClick={() => setIsModalOpen(false)}>
+              <button
+                className="px-5 py-2 bg-indigo-200 text-indigo-600 font-bold rounded-lg shadow-md shadow-indigo-100 hover:bg-indigo-300 transition"
+                onClick={() => setIsModalOpen(false)}
+              >
                 Cancel
               </button>
-              <button className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition" onClick={handleCreateFolder}>
-                Create
+              <button
+                className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+                onClick={handleCreateFolder}
+                disabled={!folderName.trim()}
+              >
+                Create 
               </button>
             </div>
           </div>

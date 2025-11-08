@@ -22,7 +22,7 @@ async function runMigration() {
         await migrate(db, {migrationsFolder: "./drizzle"})  // db-> connection string ... {migrateFolder} -> where's the migration needs to go, where i want to keep it(the folder)
         console.log("All migrations are successfully done");
 
-    }catch (error) {
+    }catch {
         console.log("All migrations are successfully done");
         process.exit(1);
     }

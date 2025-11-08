@@ -37,7 +37,10 @@ export default async function Dashboard() {
       <Navbar user={serializedUser} />
 
       <main className="flex-1 w-full max-w-7xl mx-auto py-8 px-4 sm:px-6">
-        <DashboardContent userId={userId} userName={userName} />
+        <DashboardContent 
+          userId={user.id}
+          userName={userName}
+        />
       </main>
 
       <footer className="bg-default-50 border-t border-default-200 py-6">

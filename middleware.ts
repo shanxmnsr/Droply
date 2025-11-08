@@ -1,6 +1,6 @@
 // ClerkMiddleware is to protect routes and handle authentication automatically in a Next.js app that uses Clerk for auth.
 
-import { clerkMiddleware, createRouteMatcher, auth } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 
 

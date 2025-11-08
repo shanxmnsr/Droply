@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/db/utils";
 import React from "react";
 
 export type BadgeProps = {

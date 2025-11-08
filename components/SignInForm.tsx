@@ -5,15 +5,17 @@ import { useSignIn } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { z } from "zod";
 import { signInSchema } from "@/schemas/signInSchema";
-import {
-  EyeOff,
-  Eye,
-  Mail,
-  Lock,
-  AlertCircle,
-  CheckCircle,
-} from "lucide-react";
+import { EyeOff, Eye, AlertCircle } from "lucide-react";
+
+// Infer the type directly from your Zod schema
+type SignInFormData = z.infer<typeof signInSchema>;
+
+// Define Clerk error type
+interface ClerkError {
+  errors?: { message?: string }[];
+}
 
 export default function SignInForm() {
   const router = useRouter();
@@ -22,24 +24,30 @@ export default function SignInForm() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  // Type-safe useForm
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: { identifier: "", password: "" },
   });
 
-  const onSubmit = async (data: any) => {
+  // Typed submit handler
+  const onSubmit = async (data: SignInFormData) => {
     if (!isLoaded) return;
+
     setIsSubmitting(true);
     setAuthError(null);
+
     try {
       const result = await signIn.create({
         identifier: data.identifier,
         password: data.password,
+        redirectUrl: "/dashboard"  // fallbackRedirectUrl equivalent
       });
+
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
@@ -51,10 +59,11 @@ export default function SignInForm() {
         (typeof error === "object" &&
           error &&
           "errors" in error &&
-          (error as any).errors?.[0]?.message) ||
+          (error as ClerkError).errors?.[0]?.message) ||
         (error instanceof Error
           ? error.message
           : "Oops! Something went wrong while signing in.");
+
       setAuthError(message);
     } finally {
       setIsSubmitting(false);
@@ -77,6 +86,7 @@ export default function SignInForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* Email */}
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text text-default-900">Email</span>
@@ -94,6 +104,7 @@ export default function SignInForm() {
           )}
         </div>
 
+        {/* Password */}
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text text-default-900">Password</span>

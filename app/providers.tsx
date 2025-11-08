@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider, ThemeProviderProps } from "next-themes";
 import { ImageKitProvider } from "imagekitio-next";
 import { createContext, useContext } from "react";

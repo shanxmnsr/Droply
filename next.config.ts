@@ -1,10 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Disable LightningCSS so Tailwind/PostCSS can work normally
+  
   experimental: {
     optimizeCss: false,
-  }  
+  },
+  images: {
+    domains: ["img.clerk.com"], 
+  },
 };
 
 export default nextConfig;

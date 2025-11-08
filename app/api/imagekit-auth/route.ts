@@ -1,7 +1,7 @@
 
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import imagekit from "@/lib/imagekit";
+import imagekit from "@/lib/imagekit-client";
 
 export async function GET() {
   try {

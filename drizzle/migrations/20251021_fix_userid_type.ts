@@ -1,17 +1,28 @@
-export async function up(db: any) {
-  // Change user_id column to TEXT so Clerk userIds work
-  await db.execute(`
+import { sql } from "drizzle-orm";
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+
+// define table schema again for reference
+export const files = pgTable("files", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  userId: text("user_id").notNull(), // <-- fixed to text instead of integer
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Actual migration script
+export async function up(db: any): Promise<void> {
+  // Drop old column if it was integer and recreate as text
+  await db.execute(sql`
     ALTER TABLE files
-    ALTER COLUMN user_id TYPE TEXT;
+    ALTER COLUMN user_id TYPE text USING user_id::text;
   `);
-  console.log("Migration complete: files.user_id column changed to TEXT");
 }
 
-export async function down(db: any) {
-  // Optional rollback
-  await db.execute(`
+export async function down(db: any): Promise<void> {
+  // Rollback (convert back to integer if needed)
+  await db.execute(sql`
     ALTER TABLE files
-    ALTER COLUMN user_id TYPE UUID;
+    ALTER COLUMN user_id TYPE integer USING user_id::integer;
   `);
-  console.log("Migration rollback: files.user_id column changed back to UUID");
 }

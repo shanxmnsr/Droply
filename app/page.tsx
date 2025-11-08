@@ -1,5 +1,3 @@
-import IKImage from "@/components/IKImage";
-
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 import {
@@ -7,7 +5,6 @@ import {
   Shield,
   Folder,
   Image as ImageIcon,
-  ArrowRight,
 } from "lucide-react";
 
 export default function Home() {

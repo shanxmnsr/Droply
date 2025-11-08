@@ -47,8 +47,8 @@ export default function FileTabs({
   ];
 
   return (
-    <div className="overflow-x-auto:overflow-visible">
-      <div className="flex flex-nowrap sm:flex-wrap gap-2 sm:gap-8  sm:p-0 min-w-max">
+    <div className="overflow-x-auto sm:overflow-visible">
+      <div className="flex flex-nowrap sm:flex-wrap gap-0 sm:gap-8 p-0 sm:p-0 min-w-max">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -57,7 +57,7 @@ export default function FileTabs({
             <button
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
-              className={`relative flex items-center gap-2 py-3 px-4 transition-colors whitespace-nowrap border-b-2 ${
+              className={`relative flex items-center gap-1.5 py-3 px-3 transition-colors whitespace-nowrap border-b-2 ${
                 isActive
                   ? "border-primary text-primary"
                   : "border-transparent text-default-600 hover:text-primary/70"

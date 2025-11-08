@@ -1,7 +1,15 @@
 
-"use client";
-import { IKImage } from "imagekitio-react";
+import imagekit from "@/lib/imagekit-client"; 
 
-export default function MyIKImage({ path }: { path: string }) {
-  return <IKImage path={path} alt="image" />;
+interface IKImageProps {
+  path: string;
+  alt?: string;
+}
+
+export default function IKImage({ path, alt }: IKImageProps) {
+  if (!path) return null;
+
+  const imageUrl = imagekit.url({ path });
+
+  return <img src={imageUrl} alt={alt || "ImageKit"} />;
 }

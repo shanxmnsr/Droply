@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle } from "lucide-react";
 
 const signInSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -122,7 +122,7 @@ export default function SignInPage() {
       </form>
 
       <p className="text-center text-sm text-default-600 mt-4">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <Link href="/sign-up" className="text-primary hover:underline">
           Sign up
         </Link>

@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   props: { params: Promise<{ fileId: string }> }
 ) {
   try {

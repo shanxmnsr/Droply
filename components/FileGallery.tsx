@@ -1,35 +1,43 @@
-// Display multiple images in a grid.
-
-"use client";
-
-import React from "react";
-import IKImage from "./IKImage";
-
-interface File {
-  id: string;
-  path: string; // ImageKit path stored in database
-  name: string;
-}
+import { IKImage } from "imagekitio-react";
+import type { File as FileType } from "@/lib/db/schema";
+import { getIKPath } from "@/lib/imagekit";
 
 interface FileGalleryProps {
-  files: File[];
+  files: FileType[];
 }
 
-const FileGallery: React.FC<FileGalleryProps> = ({ files }) => {
-  if (!files.length) {
-    return <p>No files uploaded yet.</p>;
-  }
-
+export default function FileGallery({ files }: FileGalleryProps) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-      {files.map((file) => (
-        <div key={file.id} className="border rounded p-2 bg-white shadow">
-          <IKImage path={file.path} transformation={{ width: 200, height: 200 }} />
-          <p className="mt-2 text-sm text-center truncate">{file.name}</p>
-        </div>
-      ))}
+    <div className="flex flex-wrap gap-4 mt-4">
+      {files.map((file) => {
+        const normalizedPath = getIKPath(file.path);
+
+        return (
+          <div
+            key={file.id}
+            className="flex flex-col items-center space-y-2 border border-gray-200 rounded-md p-2 w-[200px]"
+          >
+            {normalizedPath ? (
+              <IKImage
+                urlEndpoint={process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!}
+                path={normalizedPath}
+                alt={file.name}
+                width={200}
+                height={200}
+                className="rounded-md object-cover w-[200px] h-[200px]"
+                loading="lazy"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-[200px] h-[200px] bg-gray-100 rounded-md text-gray-400 text-sm">
+                No preview
+              </div>
+            )}
+            <p className="text-sm text-gray-700 truncate w-[180px] text-center">
+              {file.name}
+            </p>
+          </div>
+        );
+      })}
     </div>
   );
-};
-
-export default FileGallery;
+}
