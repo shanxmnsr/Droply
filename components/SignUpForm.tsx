@@ -8,11 +8,10 @@ import { useState } from "react";
 import { z } from "zod";
 import { signUpSchema } from "@/schemas/signUpSchema";
 import { EyeOff, Eye, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
-// Infer type directly from your Zod schema
 type SignUpFormData = z.infer<typeof signUpSchema>;
 
-// Define Clerk error type
 interface ClerkError {
   errors?: { message?: string }[];
 }
@@ -26,7 +25,6 @@ export default function SignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [pendingVerification, setPendingVerification] = useState(false);
 
-  // Typed useForm
   const {
     register,
     handleSubmit,
@@ -36,7 +34,6 @@ export default function SignUpForm() {
     defaultValues: { email: "", password: "" },
   });
 
-  // Sign-up submission handler
   const onSubmit = async (data: SignUpFormData) => {
     if (!isLoaded) return;
 
@@ -47,7 +44,7 @@ export default function SignUpForm() {
       await signUp.create({
         emailAddress: data.email,
         password: data.password,
-        redirectUrl: "/dashboard"  // redirect after successful sign-up
+        redirectUrl: "/dashboard",
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
@@ -68,7 +65,6 @@ export default function SignUpForm() {
     }
   };
 
-  // Email verification handler
   const onVerify = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isLoaded) return;
@@ -103,7 +99,6 @@ export default function SignUpForm() {
     }
   };
 
-  // UI for verification step
   if (pendingVerification) {
     return (
       <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
@@ -141,7 +136,6 @@ export default function SignUpForm() {
     );
   }
 
-  // UI for main signup form
   return (
     <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
       <h1 className="text-2xl font-bold text-default-900 text-center mb-2">
@@ -158,7 +152,6 @@ export default function SignUpForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email */}
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text text-default-900">Email</span>
@@ -170,13 +163,10 @@ export default function SignUpForm() {
             {...register("email")}
           />
           {errors.email && (
-            <span className="text-danger text-sm">
-              {errors.email.message}
-            </span>
+            <span className="text-danger text-sm">{errors.email.message}</span>
           )}
         </div>
 
-        {/* Password */}
         <div className="form-control w-full">
           <label className="label">
             <span className="label-text text-default-900">Password</span>
@@ -193,16 +183,10 @@ export default function SignUpForm() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
             {errors.password && (
-              <span className="text-danger text-sm">
-                {errors.password.message}
-              </span>
+              <span className="text-danger text-sm">{errors.password.message}</span>
             )}
           </div>
         </div>
@@ -218,9 +202,9 @@ export default function SignUpForm() {
 
       <p className="text-center text-sm text-default-600 mt-4">
         Already have an account?{" "}
-        <a href="/sign-in" className="text-primary hover:underline">
+        <Link href="/sign-in" className="text-primary hover:underline">
           Sign in
-        </a>
+        </Link>
       </p>
     </div>
   );

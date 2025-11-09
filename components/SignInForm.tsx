@@ -8,6 +8,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { signInSchema } from "@/schemas/signInSchema";
 import { EyeOff, Eye, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
 // Infer the type directly from your Zod schema
 type SignInFormData = z.infer<typeof signInSchema>;
@@ -24,7 +25,6 @@ export default function SignInForm() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Type-safe useForm
   const {
     register,
     handleSubmit,
@@ -34,7 +34,6 @@ export default function SignInForm() {
     defaultValues: { identifier: "", password: "" },
   });
 
-  // Typed submit handler
   const onSubmit = async (data: SignInFormData) => {
     if (!isLoaded) return;
 
@@ -45,7 +44,7 @@ export default function SignInForm() {
       const result = await signIn.create({
         identifier: data.identifier,
         password: data.password,
-        redirectUrl: "/dashboard"  // fallbackRedirectUrl equivalent
+        redirectUrl: "/dashboard",
       });
 
       if (result.status === "complete") {
@@ -121,11 +120,7 @@ export default function SignInForm() {
               className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
             {errors.password && (
               <span className="text-danger text-sm">
@@ -146,9 +141,9 @@ export default function SignInForm() {
 
       <p className="text-center text-sm text-default-600 mt-4">
         Not signed up yet?{" "}
-        <a href="/sign-up" className="text-primary hover:underline">
+        <Link href="/sign-up" className="text-primary hover:underline">
           Sign up
-        </a>
+        </Link>
       </p>
     </div>
   );

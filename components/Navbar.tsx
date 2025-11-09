@@ -3,9 +3,9 @@
 import { useClerk, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { CloudUpload, ChevronDown, Menu, X } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-
 
 interface SerializedUser {
   id: string;
@@ -48,7 +48,9 @@ export default function Navbar({ user }: NavbarProps) {
   useEffect(() => {
     if (isMobileMenuOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
@@ -121,7 +123,7 @@ export default function Navbar({ user }: NavbarProps) {
               <div className="flex items-center gap-4 relative">
                 {!isOnDashboard && (
                   <Link href="/dashboard">
-                    <button className=" px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition">Dashboard</button>
+                    <button className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition">Dashboard</button>
                   </Link>
                 )}
 
@@ -130,8 +132,8 @@ export default function Navbar({ user }: NavbarProps) {
                   <label tabIndex={0} className="btn btn-ghost btn-sm gap-2 flex items-center">
                     <div className="avatar placeholder">
                       {user?.imageUrl ? (
-                        <div className="w-8 h-8 rounded-full">
-                          <img src={user.imageUrl} alt="User" />
+                        <div className="w-8 h-8 rounded-full overflow-hidden">
+                          <Image src={user.imageUrl} alt="User" width={32} height={32} />
                         </div>
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
@@ -152,7 +154,7 @@ export default function Navbar({ user }: NavbarProps) {
                     <li>
                       <Link href="/dashboard">My Files</Link>
                     </li>
-                    <li className="">
+                    <li>
                       <button className="text-danger px-3 mt-2" onClick={handleSignOut}>
                         Sign Out
                       </button>
@@ -168,8 +170,8 @@ export default function Navbar({ user }: NavbarProps) {
             <SignedIn>
               <div className="avatar placeholder">
                 {user?.imageUrl ? (
-                  <div className="w-8 h-8 rounded-full">
-                    <img src={user.imageUrl} alt="User" />
+                  <div className="w-8 h-8 rounded-full overflow-hidden">
+                    <Image src={user.imageUrl} alt="User" width={32} height={32} />
                   </div>
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
@@ -224,8 +226,8 @@ export default function Navbar({ user }: NavbarProps) {
                 <div className="flex items-center gap-3 py-4 border-b border-default-200">
                   <div className="avatar placeholder">
                     {user?.imageUrl ? (
-                      <div className="w-10 h-10 rounded-full">
-                        <img src={user.imageUrl} alt="User" />
+                      <div className="w-10 h-10 rounded-full overflow-hidden">
+                        <Image src={user.imageUrl} alt="User" width={40} height={40} />
                       </div>
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center">

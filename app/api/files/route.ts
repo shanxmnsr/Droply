@@ -3,6 +3,7 @@ import { files } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq, and, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import type { File } from "@/lib/db/schema";
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     const parentId = request.nextUrl.searchParams.get("parentId") ?? null;
 
-    let userFiles: any[] = [];
+    let userFiles: File[] = [];
     try {
       if (parentId) {
         userFiles = await db

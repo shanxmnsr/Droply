@@ -1,11 +1,6 @@
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
-import {
-  CloudUpload,
-  Shield,
-  Folder,
-  Image as ImageIcon,
-} from "lucide-react";
+import { CloudUpload, Shield, Folder, Image as ImageIcon } from "lucide-react";
 
 export default function Home() {
   return (
@@ -46,7 +41,7 @@ export default function Home() {
                   <SignedIn>
                     <Link href="/dashboard">
                       <button className="px-5 py-3 bg-indigo-600 text-white rounded-lg shadow-md shadow-indigo-300 hover:bg-indigo-700 transition">
-                        Go to Dashboard 
+                        Go to Dashboard
                       </button>
                     </Link>
                   </SignedIn>
@@ -56,7 +51,6 @@ export default function Home() {
               {/* Hero Image */}
               <div className="flex justify-center lg:order-last">
                 <div className="relative w-64 h-64 md:w-80 md:h-80">
-
                   <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl"></div>
                   <ImageIcon className="h-40 md:h-32 w-24 md:w-32 text-primary/70 relative " />
                 </div>
@@ -116,7 +110,7 @@ export default function Home() {
               <div className="flex flex-wrap justify-center gap-4 mt-8">
                 <Link href="/sign-up">
                   <button className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition">
-                    Let's Go
+                    Let&apos;s Go
                   </button>
                 </Link>
               </div>
@@ -125,7 +119,7 @@ export default function Home() {
             <SignedIn>
               <Link href="/dashboard">
                 <button className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition">
-                  Dashboard 
+                  Dashboard
                 </button>
               </Link>
             </SignedIn>
