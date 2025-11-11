@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -22,7 +21,11 @@ export default function SignInForm() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof signInSchema>>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
   });
@@ -43,8 +46,12 @@ export default function SignInForm() {
       } else {
         setAuthError("Sign in failed. Please try again.");
       }
-    } catch (error: any) {
-      setAuthError(error.errors?.[0]?.message || "Sign in error. Try again.");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setAuthError(error.message);
+      } else {
+        setAuthError("Sign in error. Try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -87,7 +94,9 @@ export default function SignInForm() {
               />
             </div>
             {errors.email && (
-              <span className="text-sm text-error mt-1">{errors.email.message}</span>
+              <span className="text-sm text-error mt-1">
+                {errors.email.message}
+              </span>
             )}
           </div>
 
@@ -113,11 +122,17 @@ export default function SignInForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             {errors.password && (
-              <span className="text-sm text-error mt-1">{errors.password.message}</span>
+              <span className="text-sm text-error mt-1">
+                {errors.password.message}
+              </span>
             )}
           </div>
 
@@ -133,7 +148,10 @@ export default function SignInForm() {
 
         <p className="mt-4 text-center text-sm text-gray-500">
           Not signed up yet?{" "}
-          <Link href="/sign-up" className="text-primary font-medium hover:underline">
+          <Link
+            href="/sign-up"
+            className="text-primary font-medium hover:underline"
+          >
             Sign Up
           </Link>
         </p>

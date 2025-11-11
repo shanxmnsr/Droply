@@ -16,10 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased bg-default-50 text-default-900`}>
-        <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-          {...({ fallbackRedirectUrl: "/" } as any)} 
-        >
+        <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}>
           <IKProvider>
             <ClientLayout>{children}</ClientLayout>
           </IKProvider>

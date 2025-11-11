@@ -1,4 +1,3 @@
-
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import DashboardContent from "@/components/DashboardContent";
@@ -13,23 +12,20 @@ export default async function Dashboard() {
     redirect("/sign-in");
   }
 
-  // Serialize user to send only necessary info to client components
+  // Serialize user safely
   const serializedUser = user
     ? {
         id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        imageUrl: user.imageUrl,
-        username: user.username,
-        emailAddress: user.emailAddresses?.[0]?.emailAddress,
+        firstName: user.firstName ?? null,
+        lastName: user.lastName ?? null,
+        imageUrl: user.imageUrl ?? null,
+        username: user.username ?? null,
+        emailAddress: user.emailAddresses?.[0]?.emailAddress ?? null,
       }
     : null;
 
-  // Safely generate a display name
   const userName = user
-    ? user.firstName && user.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : user.firstName || user.username || user.emailAddresses?.[0]?.emailAddress || "User"
+    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.emailAddresses?.[0]?.emailAddress || "User"
     : "User";
 
   return (
