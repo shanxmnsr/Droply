@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
@@ -17,6 +17,8 @@ const signInSchema = z.object({
 export default function SignInForm() {
   const router = useRouter();
   const { signIn, isLoaded } = useSignIn();
+  const { isSignedIn } = useUser();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,10 +32,30 @@ export default function SignInForm() {
     defaultValues: { email: "", password: "" },
   });
 
+  // Redirect already signed-in users
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isSignedIn, router]);
+
   const onSubmit = async (data: z.infer<typeof signInSchema>) => {
     if (!isLoaded || !signIn) return;
     setIsSubmitting(true);
     setAuthError(null);
+
+    // Prevent sending empty fields
+    if (!data.email || !data.password) {
+      setAuthError("Email and password are required.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Log payload for debugging
+    console.log("SignIn payload being sent:", {
+      identifier: data.email,
+      password: data.password,
+    });
 
     try {
       const result = await signIn.create({
@@ -42,9 +64,12 @@ export default function SignInForm() {
       });
 
       if (result.status === "complete" && result.createdSessionId) {
-        router.push("/dashboard");
+        // Force immediate redirect so dashboard shows instantly
+        window.location.href = "/dashboard";
+      } else if (result.status === "needs_first_factor") {
+        setAuthError("Two-factor authentication required.");
       } else {
-        setAuthError("Sign in failed. Please try again.");
+        setAuthError("Sign in failed. Please check your credentials.");
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
@@ -94,9 +119,7 @@ export default function SignInForm() {
               />
             </div>
             {errors.email && (
-              <span className="text-sm text-error mt-1">
-                {errors.email.message}
-              </span>
+              <span className="text-sm text-error mt-1">{errors.email.message}</span>
             )}
           </div>
 
@@ -122,17 +145,11 @@ export default function SignInForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1"
               >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {errors.password && (
-              <span className="text-sm text-error mt-1">
-                {errors.password.message}
-              </span>
+              <span className="text-sm text-error mt-1">{errors.password.message}</span>
             )}
           </div>
 
@@ -148,10 +165,7 @@ export default function SignInForm() {
 
         <p className="mt-4 text-center text-sm text-gray-500">
           Not signed up yet?{" "}
-          <Link
-            href="/sign-up"
-            className="text-primary font-medium hover:underline"
-          >
+          <Link href="/sign-up" className="text-primary font-medium hover:underline">
             Sign Up
           </Link>
         </p>
