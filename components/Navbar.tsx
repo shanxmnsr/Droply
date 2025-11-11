@@ -71,7 +71,7 @@ export default function Navbar({ user }: NavbarProps) {
   }, [isMobileMenuOpen]);
 
   const handleSignOut = () => {
-    signOut(() => router.push("/"));
+    signOut(() => router.push("/sign-in"));
   };
 
   const userDetails = {
