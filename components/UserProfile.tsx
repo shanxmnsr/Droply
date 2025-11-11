@@ -64,11 +64,11 @@ export default function UserProfile() {
   };
 
   return (
-    <div className="max-w-md mx-auto border border-gray-200 bg-white shadow-sm rounded-lg overflow-hidden">
+    <div className="max-w-md mx-auto border border-gray-400 bg-white shadow-sm rounded-lg overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-3 p-4">
         <User className="h-6 w-6 text-primary" />
-        <h2 className="text-xl font-semibold">User Profile</h2>
+        <h2 className="text-xl font-bold">User Profile</h2>
       </div>
       <div className="divider m-0" />
 

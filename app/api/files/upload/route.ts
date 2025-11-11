@@ -33,7 +33,10 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const fileName = `${uuidv4()}-${file.name ?? "file"}`;
+    // Use original filename; optionally prepend timestamp to avoid collisions
+    const fileName = `${file.name ?? "file"}`;
+
+    // Convert to base64
     const base64File = buffer.toString("base64");
 
     // Upload to ImageKit

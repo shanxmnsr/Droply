@@ -1,150 +1,143 @@
+
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useSignIn } from "@clerk/nextjs";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { z } from "zod";
-import { signInSchema } from "@/schemas/signInSchema";
-import { EyeOff, Eye, AlertCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSignIn } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { z } from "zod";
+import { Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react";
 
-// Infer the type directly from your Zod schema
-type SignInFormData = z.infer<typeof signInSchema>;
-
-// Define Clerk error type
-interface ClerkError {
-  errors?: { message?: string }[];
-}
+const signInSchema = z.object({
+  email: z.string().email({ message: "Invalid email" }),
+  password: z.string().min(6, { message: "Password too short" }),
+});
 
 export default function SignInForm() {
   const router = useRouter();
-  const { signIn, isLoaded, setActive } = useSignIn();
+  const { signIn, isLoaded } = useSignIn();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignInFormData>({
+  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
-    defaultValues: { identifier: "", password: "" },
+    defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (data: SignInFormData) => {
-    if (!isLoaded) return;
-
+  const onSubmit = async (data: z.infer<typeof signInSchema>) => {
+    if (!isLoaded || !signIn) return;
     setIsSubmitting(true);
     setAuthError(null);
 
     try {
       const result = await signIn.create({
-        identifier: data.identifier,
+        identifier: data.email,
         password: data.password,
-        redirectUrl: "/dashboard",
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      if (result.status === "complete" && result.createdSessionId) {
         router.push("/dashboard");
       } else {
-        setAuthError("Hmm... something's off. Try signing in again!");
+        setAuthError("Sign in failed. Please try again.");
       }
-    } catch (error: unknown) {
-      const message =
-        (typeof error === "object" &&
-          error &&
-          "errors" in error &&
-          (error as ClerkError).errors?.[0]?.message) ||
-        (error instanceof Error
-          ? error.message
-          : "Oops! Something went wrong while signing in.");
-
-      setAuthError(message);
+    } catch (error: any) {
+      setAuthError(error.errors?.[0]?.message || "Sign in error. Try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
-      <h1 className="text-2xl font-bold text-default-900 text-center mb-2">
-        Welcome Back!
-      </h1>
-      <p className="text-default-500 text-center mb-4">
-        Your cloud, your files—sign in safely.
-      </p>
+    <div className="card w-full max-w-md border border-black bg-base-100 shadow-xl mx-auto">
+      <div className="card-body">
+        <h1 className="text-2xl font-bold text-center mb-2">Sign In</h1>
+        <p className="text-center text-base-content/70 mb-4">
+          Your cloud, your files - sign in safely.
+        </p>
 
-      {authError && (
-        <div className="bg-danger-50 text-danger-700 p-4 rounded-lg mb-4 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" /> {authError}
-        </div>
-      )}
+        <div className="border border-gray-400 mb-4"></div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Email */}
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text text-default-900">Email</span>
-          </label>
-          <input
-            type="email"
-            placeholder="your.email@example.com"
-            className="input input-bordered w-full"
-            {...register("identifier")}
-          />
-          {errors.identifier && (
-            <span className="text-danger text-sm">
-              {errors.identifier.message}
-            </span>
-          )}
-        </div>
+        {authError && (
+          <div className="alert alert-error mb-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <span>{authError}</span>
+          </div>
+        )}
 
-        {/* Password */}
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text text-default-900">Password</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              className="input input-bordered w-full pr-10"
-              {...register("password")}
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-            {errors.password && (
-              <span className="text-danger text-sm">
-                {errors.password.message}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email */}
+          <div className="form-control w-full">
+            <label className="label font-bold mb-2">
+              <span className="label-text">Email</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Mail className="h-4 w-4" />
               </span>
+              <input
+                type="email"
+                placeholder="your.email@example.com"
+                {...register("email")}
+                className={`input input-bordered border w-full pl-2 ${
+                  errors.email ? "input-error" : ""
+                }`}
+              />
+            </div>
+            {errors.email && (
+              <span className="text-sm text-error mt-1">{errors.email.message}</span>
             )}
           </div>
-        </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary w-full"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
+          {/* Password */}
+          <div className="form-control w-full">
+            <label className="label font-bold mb-2">
+              <span className="label-text">Password</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                <Lock className="h-4 w-4" />
+              </span>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                {...register("password")}
+                className={`input input-bordered border w-full pl-2 pr-10 ${
+                  errors.password ? "input-error" : ""
+                }`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {errors.password && (
+              <span className="text-sm text-error mt-1">{errors.password.message}</span>
+            )}
+          </div>
 
-      <p className="text-center text-sm text-default-600 mt-4">
-        Not signed up yet?{" "}
-        <Link href="/sign-up" className="text-primary hover:underline">
-          Sign up
-        </Link>
-      </p>
+          <button
+            type="submit"
+            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${
+              isSubmitting ? "loading" : ""
+            }`}
+          >
+            {isSubmitting ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Not signed up yet?{" "}
+          <Link href="/sign-up" className="text-primary font-medium hover:underline">
+            Sign Up
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

@@ -12,20 +12,19 @@ export const metadata: Metadata = {
   description: "Secure cloud storage for your images, powered by ImageKit",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <IKProvider>
-        <html lang="en" suppressHydrationWarning>
-          <body className={`${inter.variable} antialiased bg-default-50 text-default-900`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased bg-default-50 text-default-900`}>
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+          {...({ fallbackRedirectUrl: "/" } as any)} 
+        >
+          <IKProvider>
             <ClientLayout>{children}</ClientLayout>
-          </body>
-        </html>
-      </IKProvider>
-    </ClerkProvider>
+          </IKProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

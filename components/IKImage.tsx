@@ -4,8 +4,8 @@ import imagekit from "@/lib/imagekit-client";
 interface IKImageProps {
   path: string;
   alt?: string;
-  width?: number;  // optional, default can be set
-  height?: number; // optional, default can be set
+  width?: number;  
+  height?: number;
 }
 
 export default function IKImage({ path, alt, width = 300, height = 200 }: IKImageProps) {

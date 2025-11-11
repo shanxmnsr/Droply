@@ -1,211 +1,224 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { useSignUp } from "@clerk/nextjs";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { z } from "zod";
-import { signUpSchema } from "@/schemas/signUpSchema";
-import { EyeOff, Eye, AlertCircle } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSignUp } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-type SignUpFormData = z.infer<typeof signUpSchema>;
-
-interface ClerkError {
-  errors?: { message?: string }[];
-}
+import { z } from "zod";
+import { Mail, Lock, AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { signUpSchema } from "@/schemas/signUpSchema";
 
 export default function SignUpForm() {
   const router = useRouter();
   const { signUp, isLoaded, setActive } = useSignUp();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
+  const [verificationError, setVerificationError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [pendingVerification, setPendingVerification] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<SignUpFormData>({
+  const { control, handleSubmit, formState: { errors } } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  const onSubmit = async (data: SignUpFormData) => {
-    if (!isLoaded) return;
-
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+    if (!isLoaded || !signUp) return;
     setIsSubmitting(true);
     setAuthError(null);
 
     try {
+      const devBypass = process.env.NODE_ENV === "development";
+
       await signUp.create({
         emailAddress: data.email,
         password: data.password,
-        redirectUrl: "/dashboard",
+        ...(devBypass ? { bypassCaptcha: true } : {}),
       });
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setPendingVerification(true);
-    } catch (error: unknown) {
-      const message =
-        (typeof error === "object" &&
-          error &&
-          "errors" in error &&
-          (error as ClerkError).errors?.[0]?.message) ||
-        (error instanceof Error
-          ? error.message
-          : "Signup failed. Please try again.");
-
-      setAuthError(message);
+      setVerifying(true);
+    } catch (error: any) {
+      console.error("Sign-up error:", error);
+      setAuthError(error.errors?.[0]?.message || "An error occurred during sign-up. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const onVerify = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleVerificationSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!isLoaded) return;
+    if (!isLoaded || !signUp) return;
 
     setIsSubmitting(true);
-    setAuthError(null);
+    setVerificationError(null);
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({
-        code: verificationCode,
-      });
-
+      const result = await signUp.attemptEmailAddressVerification({ code: verificationCode });
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         router.push("/dashboard");
       } else {
-        setAuthError("Verification failed. Please try again.");
+        setVerificationError("Verification could not be completed. Please try again.");
       }
-    } catch (error: unknown) {
-      const message =
-        (typeof error === "object" &&
-          error &&
-          "errors" in error &&
-          (error as ClerkError).errors?.[0]?.message) ||
-        (error instanceof Error
-          ? error.message
-          : "Verification failed. Please try again.");
-
-      setAuthError(message);
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      setVerificationError(error.errors?.[0]?.message || "An error occurred during verification. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (pendingVerification) {
+  // Verification form
+  if (verifying) {
     return (
-      <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
-        <h2 className="text-2xl font-bold text-center text-default-900 mb-4">
-          Verify your email
-        </h2>
-        <p className="text-default-600 text-center mb-4">
-          We sent a 6-digit verification code to your email.
-        </p>
+      <div className="card w-full max-w-md bg-base-100 border border-black shadow-xl mx-auto">
+        <div className="card-body">
+          <h1 className="flex justify-center card-title text-2xl font-bold text-center">Verify Your Email</h1>
+          <p className="text-center text-gray-500 mb-4">
+            Enter the code sent to your email to complete signup
+          </p>
 
-        {authError && (
-          <div className="bg-danger-50 text-danger-700 p-3 rounded-lg mb-4 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" /> {authError}
-          </div>
-        )}
+          {verificationError && (
+            <div className="alert alert-error mb-4 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              <span>{verificationError}</span>
+            </div>
+          )}
 
-        <form onSubmit={onVerify} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Enter your verification code"
-            className="input input-bordered w-full"
-            value={verificationCode}
-            onChange={(e) => setVerificationCode(e.target.value)}
-          />
+          <form onSubmit={handleVerificationSubmit} className="space-y-4">
+            <div className="form-control w-full">
+              <label className="label font-bold mb-3">
+                <span className="label-text">Verification Code</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <Mail className="h-4 w-4" />
+                </span>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="Enter code"
+                  className="input input-bordered border w-full pl-2 mb-3"
+                />
+              </div>
+            </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Verifying..." : "Verify Email"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${isSubmitting ? "loading" : ""}`}
+            >
+              {isSubmitting ? "Verifying..." : "Verify Email"}
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
 
+  // Main signup form
   return (
-    <div className="card w-full max-w-md mx-auto border border-default-200 bg-default-50 shadow-xl p-6">
-      <h1 className="text-2xl font-bold text-default-900 text-center mb-2">
-        Create your account
-      </h1>
-      <p className="text-default-500 text-center mb-4">
-        Join Droply — your files, your control.
-      </p>
+    <div className="card w-full max-w-md border border-black bg-base-100 shadow-xl mx-auto">
+      <div className="card-body">
+        <h1 className="flex justify-center card-title text-2xl font-bold text-center mb-2">Create Your Account</h1>
+        <p className="text-center text-gray-500 mb-4">Sign up to start managing your images securely.</p>
 
-      {authError && (
-        <div className="bg-danger-50 text-danger-700 p-4 rounded-lg mb-4 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5" /> {authError}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text text-default-900">Email</span>
-          </label>
-          <input
-            type="email"
-            placeholder="you@example.com"
-            className="input input-bordered w-full"
-            {...register("email")}
-          />
-          {errors.email && (
-            <span className="text-danger text-sm">{errors.email.message}</span>
-          )}
-        </div>
-
-        <div className="form-control w-full">
-          <label className="label">
-            <span className="label-text text-default-900">Password</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              className="input input-bordered w-full pr-10"
-              {...register("password")}
-            />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-default-500"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-            {errors.password && (
-              <span className="text-danger text-sm">{errors.password.message}</span>
-            )}
+        {authError && (
+          <div className="alert alert-error mb-4 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <span>{authError}</span>
           </div>
-        </div>
+        )}
 
-        <button
-          type="submit"
-          className="w-full px-5 py-2 bg-indigo-600 text-white font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-700 transition"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Creating account..." : "Sign Up"}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email input */}
+          <div className="form-control w-full">
+            <label className="label font-bold mb-2">
+              <span className="label-text">Email</span>
+            </label>
+            <Controller
+              name="email"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Mail className="h-4 w-4" />
+                  </span>
+                  <input
+                    type="email"
+                    placeholder="your.email@example.com"
+                    {...field}
+                    className={`input input-bordered border w-full pl-2 ${errors.email ? "input-error" : ""}`}
+                  />
+                </div>
+              )}
+            />
+            {errors.email && <span className="text-sm text-error mt-1">{errors.email.message}</span>}
+          </div>
 
-      <p className="text-center text-sm text-default-600 mt-4">
-        Already have an account?{" "}
-        <Link href="/sign-in" className="text-primary hover:underline">
-          Sign in
-        </Link>
-      </p>
+          {/* Password input */}
+          <div className="form-control w-full">
+            <label className="label font-bold mb-2">
+              <span className="label-text">Password</span>
+            </label>
+            <Controller
+              name="password"
+              control={control}
+              defaultValue=""
+              render={({ field }) => (
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    <Lock className="h-4 w-4" />
+                  </span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...field}
+                    className={`input input-bordered border w-full pl-2 pr-10 ${errors.password ? "input-error" : ""}`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              )}
+            />
+            {errors.password && <span className="text-sm text-error mt-1">{errors.password.message}</span>}
+          </div>
+
+          {/* CAPTCHA div */}
+          <div id="clerk-captcha" className="my-4 flex justify-center" />
+
+          <div className="flex items-start gap-2 mt-2">
+            <CheckCircle className="h-5 w-5 text-primary mt-1" />
+            <p className="text-sm text-gray-500">
+              By signing up, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${isSubmitting ? "loading" : ""}`}
+          >
+            {isSubmitting ? "Creating account..." : "Create Account"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-center text-sm text-gray-500">
+          Already have an account?{" "}
+          <Link href="/sign-in" className="text-primary font-medium hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }
