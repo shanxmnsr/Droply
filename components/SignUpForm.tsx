@@ -111,6 +111,8 @@ export default function SignUpForm() {
             Enter the code sent to your email to complete signup
           </p>
 
+          <div className="border border-gray-300 mb-5"></div>
+
           {verificationError && (
             <div className="alert alert-error mb-4 flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
@@ -139,9 +141,7 @@ export default function SignUpForm() {
 
             <button
               type="submit"
-              className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${
-                isSubmitting ? "loading" : ""
-              }`}
+              className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition $`}
             >
               {isSubmitting ? "Verifying..." : "Verify Email"}
             </button>
@@ -161,6 +161,8 @@ export default function SignUpForm() {
         <p className="text-center text-gray-500 mb-4">
           Sign up to start managing your images securely.
         </p>
+
+        <div className="border border-gray-300 mb-5"></div>
 
         {authError && (
           <div className="alert alert-error mb-4 flex items-center gap-2">
@@ -258,9 +260,7 @@ export default function SignUpForm() {
 
           <button
             type="submit"
-            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${
-              isSubmitting ? "loading" : ""
-            }`}
+            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition $`}
           >
             {isSubmitting ? "Creating account..." : "Create Account"}
           </button>

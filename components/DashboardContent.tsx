@@ -71,7 +71,7 @@ export default function DashboardContent({
       </div>
 
       {/* for line */}
-      <div className="border border-black-100" />
+      <div className="border border-gray-300 mb-5" />
 
       {/* Tab Content */}
       {activeTab === "files" && (

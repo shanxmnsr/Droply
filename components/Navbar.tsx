@@ -253,6 +253,7 @@ export default function Navbar({ user }: NavbarProps) {
                   )}
                   <Link
                     href="/dashboard?tab=profile"
+                    
                     className="flex justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

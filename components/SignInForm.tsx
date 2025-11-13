@@ -90,7 +90,7 @@ export default function SignInForm() {
           Your cloud, your files - sign in safely.
         </p>
 
-        <div className="border border-gray-400 mb-4"></div>
+        <div className="border border-gray-300 mb-4"></div>
 
         {authError && (
           <div className="alert alert-error mb-4 flex items-center gap-2">
@@ -155,9 +155,7 @@ export default function SignInForm() {
 
           <button
             type="submit"
-            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition ${
-              isSubmitting ? "loading" : ""
-            }`}
+            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition $`}
           >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>

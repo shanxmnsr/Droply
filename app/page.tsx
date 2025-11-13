@@ -50,7 +50,7 @@ export default function Home() {
 
               {/* Hero Image */}
               <div className="flex justify-center lg:order-last">
-                <div className="relative w-64 h-64 md:w-80 md:h-80">
+                <div className="relative w-50 h-60 md:w-80 md:h-80">
                   <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl"></div>
                   <ImageIcon className="h-40 md:h-32 w-24 md:w-32 text-primary/70 relative " />
                 </div>
@@ -60,7 +60,7 @@ export default function Home() {
         </section>
 
         {/* Features section */}
-        <section className="py-12 md:py-16 md:px-6 bg-default-50">
+        <section className="py-1 md:py-16 md:px-6 bg-default-50">
           <div className="container mx-auto">
             <div className="text-center mb-8 md:mb-12">
               <h2 className="text-2xl md:text-5xl font-bold mb-4 text-default-900">
@@ -88,7 +88,7 @@ export default function Home() {
               </div>
 
               {/* Locked Down */}
-              <div className="card border border-default-200 bg-default-50 shadow-sm hover:shadow-lg transition-shadow p-6 text-center sm:col-span-2 md:col-span-1 mx-auto sm:mx-0 max-w-md sm:max-w-full">
+              <div className="flex w-full card border border-default-200 bg-default-50 shadow-sm hover:shadow-lg transition-shadow p-6 text-center sm:col-span-2 md:col-span-1 mx-auto ">
                 <Shield className="h-10 md:h-12 w-10 md:w-12 mx-auto mb-4 text-primary" />
                 <h3 className="text-lg md:text-xl font-semibold mb-2 text-default-900">
                   Locked Down
@@ -131,7 +131,7 @@ export default function Home() {
       <footer className="bg-default-50 border-t border-default-200 py-4 md:py-6">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center gap-2 mb-4 md:mb-0">
+            <div className="flex items-center gap-2 mb-2 md:mb-0">
               <CloudUpload className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-bold">Droply</h2>
             </div>
