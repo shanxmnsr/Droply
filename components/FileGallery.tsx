@@ -10,7 +10,8 @@ export default function FileGallery({ files }: FileGalleryProps) {
   return (
     <div className="flex flex-wrap gap-4 mt-4">
       {files.map((file) => {
-        const normalizedPath = getIKPath(file.path);
+        const filePath = file.type?.startsWith("video/") ? file.thumbnailUrl : file.path;
+        const normalizedPath = getIKPath(filePath);
 
         return (
           <div
@@ -19,7 +20,7 @@ export default function FileGallery({ files }: FileGalleryProps) {
           >
             {normalizedPath ? (
               <IKImage
-                urlEndpoint={process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!}
+                urlEndpoint={process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT ?? ""}
                 path={normalizedPath}
                 alt={file.name}
                 width={200}

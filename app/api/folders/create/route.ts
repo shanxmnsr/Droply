@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       size: 0,
       type: "folder",
       fileUrl: "",
-      thumbnail: "",
+      thumbnailUrl: null,
     });
 
     return NextResponse.json({ success: true });

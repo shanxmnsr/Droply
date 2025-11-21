@@ -8,7 +8,7 @@ export const files = pgTable("files", {
   size: integer("size").notNull(),
   type: text("type").notNull(),
   fileUrl: text("file_url"),
-  thumbnail: text("thumbnail_url"),
+  thumbnailUrl: text("thumbnail_url"),
   userId: text("user_id").notNull(),
   parentId: uuid("parent_id"),
   isFolder: boolean("is_folder").default(false).notNull(),

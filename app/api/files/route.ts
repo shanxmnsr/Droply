@@ -12,9 +12,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized", files: [] }, { status: 401 });
     }
 
-    const parentId = request.nextUrl.searchParams.get("parentId") ?? null;
+    // --- Safe parentId parsing ---
+    const parentIdParam = request.nextUrl.searchParams.get("parentId");
+    const parentId =
+      parentIdParam &&
+      parentIdParam !== "null" &&
+      parentIdParam !== "undefined" &&
+      parentIdParam.trim() !== ""
+        ? parentIdParam
+        : null;
+
+    console.log("Fetching files for user:", userId, "parentId:", parentId);
 
     let userFiles: File[] = [];
+
     try {
       if (parentId) {
         userFiles = await db
@@ -28,8 +39,14 @@ export async function GET(request: NextRequest) {
           .where(and(eq(files.userId, userId), isNull(files.parentId)));
       }
     } catch (dbError) {
-      console.error("Database query failed:", dbError);
-      return NextResponse.json({ error: "Database query failed", files: [] }, { status: 500 });
+      // Log detailed error for debugging
+      console.error("Database query failed:", dbError, { userId, parentId });
+
+      // Return safe response to frontend (no 500)
+      return NextResponse.json({
+        error: "Database query failed (check server logs)",
+        files: [],
+      });
     }
 
     return NextResponse.json({ files: userFiles });

@@ -4,15 +4,17 @@ import DashboardContent from "@/components/DashboardContent";
 import Navbar from "@/components/Navbar";
 import { CloudUpload } from "lucide-react";
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }: { searchParams?: any }) {
+  
+  const resolvedSearchParams = await searchParams;
+
+  const tabParam = resolvedSearchParams?.tab;
+  const tab = Array.isArray(tabParam) ? tabParam[0] : tabParam ?? "files";
+
   const { userId } = await auth();
   const user = await currentUser();
+  if (!userId) redirect("/sign-in");
 
-  if (!userId) {
-    redirect("/sign-in");
-  }
-
-  // Serialize user safely
   const serializedUser = user
     ? {
         id: user.id,
@@ -25,20 +27,20 @@ export default async function Dashboard() {
     : null;
 
   const userName = user
-    ? [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.emailAddresses?.[0]?.emailAddress || "User"
+    ? [
+        user.firstName,
+        user.lastName,
+        user.username,
+        user.emailAddresses?.[0]?.emailAddress,
+      ].filter(Boolean)[0] ?? "User"
     : "User";
 
   return (
     <div className="min-h-screen flex flex-col bg-default-50">
-      <Navbar user={serializedUser} />
-
+      <Navbar user={serializedUser} initialTab={tab} />
       <main className="flex-1 w-full max-w-7xl mx-auto py-8 px-4 sm:px-6">
-        <DashboardContent 
-          userId={user.id}
-          userName={userName}
-        />
+        <DashboardContent userId={user?.id ?? ""} userName={userName} tab={tab} />
       </main>
-
       <footer className="bg-default-50 border-t border-default-200 py-6">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">

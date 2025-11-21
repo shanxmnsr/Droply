@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -22,51 +23,74 @@ export default function FileUploadForm({
   onUploadSuccess,
   currentFolder = null,
 }: FileUploadFormProps) {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [folderName, setFolderName] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  /** Add files with validation and duplicate check */
+  const addFiles = (newFiles: File[]) => {
+    let duplicates: string[] = [];
+
+    const validFiles = newFiles.filter((file) => {
+      const isVideo = file.type.startsWith("video/");
+
+      // Size validation
+      if (!isVideo && file.size > 5 * 1024 * 1024) {
+        setError(`Image "${file.name}" exceeds 5MB limit`);
+        return false;
+      }
+      if (isVideo && file.size > 100 * 1024 * 1024) {
+        setError(`Video "${file.name}" exceeds 100MB limit`);
+        return false;
+      }
+
+      // Duplicate check 
+      if (files.some((f) => f.name === file.name)) {
+        duplicates.push(file.name);
+        return false;
+      }
+
+      return true;
+    });
+
+    if (duplicates.length) {
+      alert(`Duplicate file(s) skipped: ${duplicates.join(", ")}`);
+    }
+
+    // Add new files at the top
+    setFiles((prev) => [...validFiles, ...prev]);
+    setError(null);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        setError("File size exceeds 5MB limit");
-        return;
-      }
-      setFile(selectedFile);
-      setError(null);
-    }
+    if (e.target.files) addFiles(Array.from(e.target.files));
   };
 
+  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) addFiles(Array.from(e.target.files));
+  };
+
+  /** Drag & Drop */
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const droppedFile = e.dataTransfer.files[0];
-      if (droppedFile.size > 5 * 1024 * 1024) {
-        setError("File size exceeds 5MB limit");
-        return;
-      }
-      setFile(droppedFile);
-      setError(null);
-    }
+    if (e.dataTransfer.files) addFiles(Array.from(e.dataTransfer.files));
   };
-
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
 
-  const clearFile = () => {
-    setFile(null);
-    setError(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
 
+  /** Upload files */
   const handleUpload = async () => {
-    if (!file) return;
+    if (!files.length) return;
+
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach((file) => formData.append("files", file, (file as any).webkitRelativePath || file.name));
     formData.append("userId", userId);
     if (currentFolder) formData.append("parentId", currentFolder);
 
@@ -75,34 +99,26 @@ export default function FileUploadForm({
     setError(null);
 
     try {
-      await axios.post("/api/files/upload", formData, {
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setProgress(percentCompleted);
-          }
+      await axios.post("/api/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e) => {
+          if (e.total) setProgress(Math.round((e.loaded * 100) / e.total));
         },
       });
-
-      clearFile();
+      setFiles([]);
       onUploadSuccess?.();
-
-      alert(`${file.name} uploaded successfully!`);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      setError("Failed to upload file. Please try again.");
+      alert("Files uploaded successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to upload files. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
+  /** Folder creation */
   const handleCreateFolder = async () => {
-    if (!folderName.trim()) {
-      alert("Please enter a valid folder name");
-      return;
-    }
+    if (!folderName.trim()) return alert("Please enter folder name");
 
     try {
       await axios.post("/api/folders/create", {
@@ -110,86 +126,84 @@ export default function FileUploadForm({
         userId,
         parentId: currentFolder,
       });
-
       alert(`Folder "${folderName}" created successfully`);
       setFolderName("");
       setIsModalOpen(false);
       onUploadSuccess?.();
-    } catch (error) {
-      console.error("Error creating folder:", error);
-      alert("Failed to create folder. Please try again.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to create folder.");
     }
   };
 
   return (
     <div className="space-y-5">
-      {/* Action Buttons */}
-      <div className="flex gap-3">
+      {/* Buttons */}
+      <div className="flex gap-2">
         <button
-          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
           onClick={() => setIsModalOpen(true)}
         >
           <FolderPlus className="w-4 h-4 mx-2 mt-1" /> New Folder
         </button>
         <button
-          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+          className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
           onClick={() => fileInputRef.current?.click()}
         >
-          <FileUp className="w-4 h-4 mx-2 mt-1" /> Add Image
+          <FileUp className="w-4 h-4 mx-2 mt-1" /> Add Files
         </button>
       </div>
 
-      {/* File Drop Area */}
+      <button
+        className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
+        onClick={() => folderInputRef.current?.click()}
+      >
+        <FolderPlus className="w-4 h-4 mx-2 mt-1" /> Upload Folder
+      </button>
+
+      {/* Hidden inputs */}
+      <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleFileChange} />
+      <input type="file" ref={folderInputRef} className="hidden" multiple // @ts-ignore
+        webkitdirectory="true" onChange={handleFolderChange}
+      />
+
+      {/* Drop area */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         className={`border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-xl p-6 text-center transition-colors duration-300 ${
           error
             ? "border-error bg-error/10"
-            : file
-              ? "border-primary bg-primary/5"
-              : "border-base-300 hover:border-primary/40"
+            : files.length > 0
+            ? "border-primary bg-primary/5"
+            : "border-base-300 hover:border-primary/40"
         }`}
       >
-        {!file ? (
+        {!files.length ? (
           <div className="space-y-3">
             <FileUp className="w-12 h-12 mx-auto text-primary/70" />
             <p className="text-base text-gray-600 text-sm">
-              Drag & drop your image here, or{" "}
-              <span
-                className="text-primary font-semibold cursor-pointer hover:underline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                browse
-              </span>
+              Drag & drop your images or videos here, or{" "}
+              <span className="text-primary font-semibold cursor-pointer hover:underline" onClick={() => fileInputRef.current?.click()}>browse</span>
             </p>
-            <p className="text-xs text-gray-400">Images up to 5MB</p>
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              onChange={handleFileChange}
-              accept="image/*"
-            />
+            <p className="text-xs text-gray-400">Images up to 5MB, videos up to 100MB</p>
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-md">
-                  <FileUp className="w-5 h-5 text-primary" />
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-md"><FileUp className="w-5 h-5 text-primary" /></div>
+                  <div className="text-left">
+                    <p className="font-medium text-sm">{file.name}</p>
+                    <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <p className="font-medium text-sm">{file.name}</p>
-                  <p className="text-xs text-gray-500">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
+                <button onClick={() => removeFile(index)} className="btn btn-ghost btn-sm">
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
               </div>
-              <button onClick={clearFile} className="btn btn-ghost btn-sm">
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
+            ))}
 
             {error && (
               <div className="alert alert-error flex items-center gap-2">
@@ -198,27 +212,17 @@ export default function FileUploadForm({
               </div>
             )}
 
-            {uploading && (
-              <progress
-                className="progress progress-primary w-full"
-                value={progress}
-                max="100"
-              ></progress>
-            )}
+            {uploading && <progress className="progress progress-primary w-full" value={progress} max="100" />}
 
             <button
               className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
               onClick={handleUpload}
               disabled={uploading || !!error}
             >
-              {uploading ? (
-                `Uploading... ${progress}%`
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 mx-2" /> Upload Image 
-                  <ArrowRight className="w-4 h-4 mx-2 mt-1" />
-                </>
-              )}
+              {uploading ? `Uploading... ${progress}%` : <>
+                <Upload className="w-4 h-4 mx-2" /> Upload Files
+                <ArrowRight className="w-4 h-4 mx-2 mt-1" />
+              </>}
             </button>
           </div>
         )}
@@ -230,7 +234,7 @@ export default function FileUploadForm({
         <ul className="text-xs text-gray-500 space-y-1">
           <li>• Images are private and only visible to you</li>
           <li>• Supported formats: JPG, PNG, GIF, WebP</li>
-          <li>• Maximum file size: 5MB</li>
+          <li>• Maximum image size: 5MB, video size: 100MB</li>
         </ul>
       </div>
 
@@ -241,9 +245,6 @@ export default function FileUploadForm({
             <h3 className="font-bold text-lg flex items-center gap-2 mb-3">
               <FolderPlus className="w-5 h-5 text-primary" /> New Folder
             </h3>
-            <p className="text-sm text-gray-500 mb-2">
-              Enter a name for your new folder:
-            </p>
             <input
               type="text"
               placeholder="My folder"
@@ -253,17 +254,17 @@ export default function FileUploadForm({
             />
             <div className="modal-action">
               <button
-                className="px-5 py-2 bg-indigo-200 text-indigo-600 font-bold rounded-lg shadow-md shadow-indigo-100 hover:bg-indigo-300 transition"
+                className="px-5 py-2 bg-indigo-200 text-indigo-600 font-bold rounded-lg shadow-md hover:bg-indigo-300 transition"
                 onClick={() => setIsModalOpen(false)}
               >
                 Cancel
               </button>
               <button
-                className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+                className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
                 onClick={handleCreateFolder}
                 disabled={!folderName.trim()}
               >
-                Create 
+                Create
               </button>
             </div>
           </div>
