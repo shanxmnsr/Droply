@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useRef } from "react";
@@ -35,7 +34,7 @@ export default function FileUploadForm({
 
   /** Add files with validation and duplicate check */
   const addFiles = (newFiles: File[]) => {
-    let duplicates: string[] = [];
+    const duplicates: string[] = [];
 
     const validFiles = newFiles.filter((file) => {
       const isVideo = file.type.startsWith("video/");
@@ -50,7 +49,7 @@ export default function FileUploadForm({
         return false;
       }
 
-      // Duplicate check 
+      // Duplicate check
       if (files.some((f) => f.name === file.name)) {
         duplicates.push(file.name);
         return false;
@@ -63,7 +62,6 @@ export default function FileUploadForm({
       alert(`Duplicate file(s) skipped: ${duplicates.join(", ")}`);
     }
 
-    // Add new files at the top
     setFiles((prev) => [...validFiles, ...prev]);
     setError(null);
   };
@@ -83,14 +81,22 @@ export default function FileUploadForm({
   };
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
 
-  const removeFile = (index: number) => setFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeFile = (index: number) =>
+    setFiles((prev) => prev.filter((_, i) => i !== index));
 
   /** Upload files */
   const handleUpload = async () => {
     if (!files.length) return;
 
     const formData = new FormData();
-    files.forEach((file) => formData.append("files", file, (file as any).webkitRelativePath || file.name));
+    files.forEach((file) =>
+      formData.append(
+        "files",
+        file,
+        (file as File & { webkitRelativePath?: string }).webkitRelativePath ||
+          file.name
+      )
+    );
     formData.append("userId", userId);
     if (currentFolder) formData.append("parentId", currentFolder);
 
@@ -136,6 +142,18 @@ export default function FileUploadForm({
     }
   };
 
+  /** Folder input element using type assertion to allow webkitdirectory */
+  const folderInputElement = (
+    <input
+      type="file"
+      ref={folderInputRef}
+      className="hidden"
+      multiple
+      {...({ webkitdirectory: "true" } as React.InputHTMLAttributes<HTMLInputElement>)}
+      onChange={handleFolderChange}
+    />
+  );
+
   return (
     <div className="space-y-5">
       {/* Buttons */}
@@ -162,10 +180,15 @@ export default function FileUploadForm({
       </button>
 
       {/* Hidden inputs */}
-      <input type="file" ref={fileInputRef} className="hidden" multiple accept="image/*,video/*" onChange={handleFileChange} />
-      <input type="file" ref={folderInputRef} className="hidden" multiple // @ts-ignore
-        webkitdirectory="true" onChange={handleFolderChange}
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        multiple
+        accept="image/*,video/*"
+        onChange={handleFileChange}
       />
+      {folderInputElement}
 
       {/* Drop area */}
       <div
@@ -184,22 +207,36 @@ export default function FileUploadForm({
             <FileUp className="w-12 h-12 mx-auto text-primary/70" />
             <p className="text-base text-gray-600 text-sm">
               Drag & drop your images or videos here, or{" "}
-              <span className="text-primary font-semibold cursor-pointer hover:underline" onClick={() => fileInputRef.current?.click()}>browse</span>
+              <span
+                className="text-primary font-semibold cursor-pointer hover:underline"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                browse
+              </span>
             </p>
-            <p className="text-xs text-gray-400">Images up to 5MB, videos up to 100MB</p>
+            <p className="text-xs text-gray-400">
+              Images up to 5MB, videos up to 100MB
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {files.map((file, index) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-md"><FileUp className="w-5 h-5 text-primary" /></div>
+                  <div className="p-2 bg-primary/10 rounded-md">
+                    <FileUp className="w-5 h-5 text-primary" />
+                  </div>
                   <div className="text-left">
                     <p className="font-medium text-sm">{file.name}</p>
-                    <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p className="text-xs text-gray-500">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
                   </div>
                 </div>
-                <button onClick={() => removeFile(index)} className="btn btn-ghost btn-sm">
+                <button
+                  onClick={() => removeFile(index)}
+                  className="btn btn-ghost btn-sm"
+                >
                   <X className="w-4 h-4 text-gray-500" />
                 </button>
               </div>
@@ -212,17 +249,27 @@ export default function FileUploadForm({
               </div>
             )}
 
-            {uploading && <progress className="progress progress-primary w-full" value={progress} max="100" />}
+            {uploading && (
+              <progress
+                className="progress progress-primary w-full"
+                value={progress}
+                max="100"
+              />
+            )}
 
             <button
               className="flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
               onClick={handleUpload}
               disabled={uploading || !!error}
             >
-              {uploading ? `Uploading... ${progress}%` : <>
-                <Upload className="w-4 h-4 mx-2" /> Upload Files
-                <ArrowRight className="w-4 h-4 mx-2 mt-1" />
-              </>}
+              {uploading ? (
+                `Uploading... ${progress}%`
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mx-2" /> Upload Files
+                  <ArrowRight className="w-4 h-4 mx-2 mt-1" />
+                </>
+              )}
             </button>
           </div>
         )}
