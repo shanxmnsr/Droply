@@ -242,16 +242,19 @@ export default function FileList({
                         onShare={() => onShare?.(file)}
                         onDownload={() => {
                           if (!file.fileUrl) return alert("Invalid file URL.");
-                          fetch(file.fileUrl).then(res => res.blob()).then(blob => {
-                            const url = window.URL.createObjectURL(blob);
-                            const link = document.createElement("a");
-                            link.href = url;
-                            link.download = file.name;
-                            document.body.appendChild(link);
-                            link.click();
-                            link.remove();
-                            window.URL.revokeObjectURL(url);
-                          }).catch(() => alert("Failed to download file."));
+                          fetch(file.fileUrl)
+                            .then(res => res.blob())
+                            .then(blob => {
+                              const url = window.URL.createObjectURL(blob);
+                              const link = document.createElement("a");
+                              link.href = url;
+                              link.download = file.name;
+                              document.body.appendChild(link);
+                              link.click();
+                              link.remove();
+                              window.URL.revokeObjectURL(url);
+                            })
+                            .catch(() => alert("Failed to download file."));
                         }}
                       />
                     </td>

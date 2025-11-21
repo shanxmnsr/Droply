@@ -12,9 +12,9 @@ export default async function Dashboard({ searchParams }: DashboardProps) {
   // Resolve searchParams safely
   const resolvedSearchParams = searchParams ?? {};
 
-  const tabParam = resolvedSearchParams?.tab;
-  const tab =
-    Array.isArray(tabParam) ? tabParam[0] : tabParam ?? "files";
+  // Proper typing: tab can be string | undefined
+  const tabParam: string | string[] | undefined = resolvedSearchParams.tab;
+  const tab: string = Array.isArray(tabParam) ? tabParam[0] : tabParam ?? "files";
 
   // Authenticate user
   const { userId } = await auth();
