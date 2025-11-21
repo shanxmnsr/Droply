@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -47,7 +46,7 @@ export default function FileList({
       if (currentFolder) url += `?parentId=${currentFolder}`;
 
       const res = await axios.get(url);
-      let fetchedFiles: FileType[] = Array.isArray(res.data) ? res.data : res.data.files ?? [];
+      const fetchedFiles: FileType[] = Array.isArray(res.data) ? res.data : res.data.files ?? [];
 
       // Remove duplicates by id
       const uniqueFilesMap = new Map<string, FileType>();
@@ -58,7 +57,7 @@ export default function FileList({
       uniqueFiles.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       setFiles(uniqueFiles);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error fetching files:", err);
       setFiles([]);
     } finally {
@@ -119,19 +118,21 @@ export default function FileList({
     try {
       await axios.patch(`/api/files/${file.id}/star`, { isStarred: !file.isStarred });
       fetchFiles();
-    } catch (err) { console.error(err); }
+    } catch (err: unknown) { console.error(err); }
   };
 
   const handleTrash = async (file: FileType) => {
     try {
       await axios.patch(`/api/files/${file.id}/trash`, { isTrash: !file.isTrash });
       fetchFiles();
-    } catch (err) { console.error(err); }
+    } catch (err: unknown) { console.error(err); }
   };
 
   const handleDeletePermanent = async (file: FileType) => {
-    try { await axios.delete(`/api/files/${file.id}/delete`); fetchFiles(); }
-    catch (err) { console.error(err); }
+    try {
+      await axios.delete(`/api/files/${file.id}/delete`);
+      fetchFiles();
+    } catch (err: unknown) { console.error(err); }
   };
 
   /** ITEM CLICK */

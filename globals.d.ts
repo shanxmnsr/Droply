@@ -1,3 +1,10 @@
+
+// Extend HTMLInputElement for folder upload
+interface HTMLInputElement {
+  webkitdirectory?: boolean;
+}
+
+// Module declaration for imagekitio-react
 declare module "imagekitio-react" {
   import * as React from "react";
 

@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     let formData: FormData;
     try {
       formData = await req.formData();
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Failed to parse form data:", err);
       return NextResponse.json(
         { error: "Failed to parse uploaded files. File may be too large." },
@@ -58,14 +58,14 @@ export async function POST(req: NextRequest) {
 
     const rootParentId = (formData.get("parentId") as string) || null;
     const uploadedFiles: FileRow[] = [];
-    const folderMap: Record<string, string> = {}; 
+    const folderMap: Record<string, string> = {};
 
     console.log("Starting upload for user:", userId);
     console.log("Received files:", allFiles.map((f) => f.name));
 
     for (const fileData of allFiles) {
       // Handle folder structure
-      const relativePath = (fileData as any).webkitRelativePath || fileData.name;
+      const relativePath = (fileData as { webkitRelativePath?: string }).webkitRelativePath || fileData.name;
       const parts = relativePath.split("/");
       const fileName = parts.pop()!;
       let currentParentId = rootParentId;
@@ -76,20 +76,28 @@ export async function POST(req: NextRequest) {
         currentPath += `/${folderName}`;
         if (!folderMap[currentPath]) {
           const folderId = uuidv4();
-          await db.insert(files).values({
-            id: folderId,
-            name: folderName,
-            path: "",
-            size: 0,
-            type: "folder",
-            fileUrl: "",
-            thumbnailUrl: null,
-            userId,
-            parentId: currentParentId,
-            isFolder: true,
-            isStarred: false,
-            isTrash: false,
-          });
+          try {
+            await db.insert(files).values({
+              id: folderId,
+              name: folderName,
+              path: "",
+              size: 0,
+              type: "folder",
+              fileUrl: "",
+              thumbnailUrl: null,
+              userId,
+              parentId: currentParentId,
+              isFolder: true,
+              isStarred: false,
+              isTrash: false,
+            });
+          } catch (err: unknown) {
+            console.error("DB insert folder error:", err);
+            return NextResponse.json(
+              { error: "Failed to create folder", details: String(err) },
+              { status: 500 }
+            );
+          }
           folderMap[currentPath] = folderId;
         }
         currentParentId = folderMap[currentPath];
@@ -108,7 +116,7 @@ export async function POST(req: NextRequest) {
           fileName: `${uuidv4()}_${fileName}`,
           folder: `/${userId}`,
         })) as ImageKitUploadResponse;
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("ImageKit upload error:", err);
         return NextResponse.json(
           { error: "ImageKit upload failed", details: String(err) },
@@ -138,8 +146,8 @@ export async function POST(req: NextRequest) {
           .returning();
 
         uploadedFiles.push(newFile as FileRow);
-      } catch (err) {
-        console.error("DB insert error:", err);
+      } catch (err: unknown) {
+        console.error("DB insert file error:", err);
         return NextResponse.json(
           { error: "Database insert failed", details: String(err) },
           { status: 500 }
@@ -151,7 +159,7 @@ export async function POST(req: NextRequest) {
       message: "Folder + Files uploaded successfully",
       files: uploadedFiles,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Upload Error:", error);
     return NextResponse.json(
       { error: "Upload failed", details: String(error) },

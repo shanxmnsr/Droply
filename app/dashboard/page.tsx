@@ -4,13 +4,19 @@ import DashboardContent from "@/components/DashboardContent";
 import Navbar from "@/components/Navbar";
 import { CloudUpload } from "lucide-react";
 
-export default async function Dashboard({ searchParams }: { searchParams?: any }) {
-  
-  const resolvedSearchParams = await searchParams;
+interface DashboardProps {
+  searchParams?: Record<string, string | string[] | undefined>;
+}
+
+export default async function Dashboard({ searchParams }: DashboardProps) {
+  // Resolve searchParams safely
+  const resolvedSearchParams = searchParams ?? {};
 
   const tabParam = resolvedSearchParams?.tab;
-  const tab = Array.isArray(tabParam) ? tabParam[0] : tabParam ?? "files";
+  const tab =
+    Array.isArray(tabParam) ? tabParam[0] : tabParam ?? "files";
 
+  // Authenticate user
   const { userId } = await auth();
   const user = await currentUser();
   if (!userId) redirect("/sign-in");
