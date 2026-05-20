@@ -380,7 +380,6 @@ interface FileListProps {
 }
 
 export default function FileList({
-  userId,
   refreshTrigger = 0,
   onFolderChange,
   onShare,

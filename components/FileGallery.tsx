@@ -46,6 +46,7 @@
 
 
 import type { File as FileType } from "@/lib/db/schema";
+import Image from "next/image";
 
 interface FileGalleryProps {
   files: FileType[];
@@ -66,7 +67,7 @@ export default function FileGallery({ files }: FileGalleryProps) {
             className="flex flex-col items-center space-y-2 border border-gray-200 rounded-md p-2 w-[200px]"
           >
             {previewUrl ? (
-              <img
+              <Image
                 src={previewUrl}
                 alt={file.name}
                 className="rounded-md object-cover w-[200px] h-[200px]"

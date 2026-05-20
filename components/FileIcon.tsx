@@ -79,6 +79,7 @@
 
 import type { File as FileType } from "@/lib/db/schema";
 import { Folder, FileText, Play } from "lucide-react";
+import Image from "next/image";
 
 interface FileIconProps {
   file: FileType;
@@ -97,7 +98,7 @@ export default function FileIcon({ file }: FileIconProps) {
     return (
       <div className="h-12 w-12 overflow-hidden rounded-xl bg-base-200 shadow-sm">
         {file.fileUrl ? (
-          <img
+          <Image
             src={file.fileUrl}
             alt={file.name}
             className="object-cover w-full h-full"
