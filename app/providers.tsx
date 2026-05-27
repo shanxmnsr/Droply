@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { ThemeProvider as NextThemesProvider, ThemeProviderProps } from "next-themes";
+import {
+  ThemeProvider as NextThemesProvider,
+  ThemeProviderProps,
+} from "next-themes";
 import { ImageKitProvider } from "imagekitio-next";
 import { createContext, useContext } from "react";
 
@@ -10,7 +13,6 @@ export interface ProvidersProps {
   themeProps?: ThemeProviderProps;
 }
 
-// Create a context for ImageKit authentication
 export const ImageKitAuthContext = createContext<{
   authenticate: () => Promise<{
     signature: string;
@@ -36,7 +38,6 @@ const authenticator = async () => {
 };
 
 export function Providers({ children, themeProps }: ProvidersProps) {
-  // Use default themeProps if none is provided
   const finalThemeProps: ThemeProviderProps = themeProps || {
     attribute: "class",
     defaultTheme: "system",

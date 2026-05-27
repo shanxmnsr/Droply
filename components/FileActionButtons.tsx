@@ -1,65 +1,6 @@
-// "use client";
-
-// import { RefreshCw, Trash } from "lucide-react";
-
-// interface FileActionButtonsProps {
-//   activeTab: string;
-//   trashCount: number;
-//   folderPath: Array<{ id: string; name: string }>;
-//   onRefresh: () => void;
-//   onEmptyTrash: () => void;
-// }
-
-// export default function FileActionButtons({
-//   activeTab,
-//   trashCount,
-//   folderPath,
-//   onRefresh,
-//   onEmptyTrash,
-// }: FileActionButtonsProps) {
-//   return (
-//     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-//       <h2 className="text-xl sm:text-2xl font-semibold truncate max-w-full">
-//         {activeTab === "all" &&
-//           (folderPath.length > 0
-//             ? folderPath[folderPath.length - 1].name
-//             : "All Files")}
-//         {activeTab === "starred" && "Starred Files"}
-//         {activeTab === "trash" && "Trash"}
-//       </h2>
-
-//       <div className="flex gap-2 sm:gap-3 self-end sm:self-auto">
-//         {/* Refresh button */}
-//         <button
-//           onClick={onRefresh}
-//           className="flex flex-1 items-center gap-2 px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
-//         >
-//           <RefreshCw className="h-4 w-4" />
-//           Refresh
-//         </button>
-
-//         {/* Empty Trash button */}
-//         {activeTab === "trash" && trashCount > 0 && (
-//           <button
-//             onClick={onEmptyTrash}
-//             className="flex flex-1 items-center gap-2 px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
-//           >
-//             <Trash className="h-4 w-4" />
-//             Empty 
-//           </button>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
 "use client";
 
-import { RefreshCw, Trash } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 
 interface FileActionButtonsProps {
   activeTab: "all" | "starred" | "trash";
@@ -76,39 +17,59 @@ export default function FileActionButtons({
   onRefresh,
   onEmptyTrash,
 }: FileActionButtonsProps) {
-  return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-      <h2 className="text-xl sm:text-2xl font-semibold truncate max-w-full">
-        {activeTab === "all" &&
-          (folderPath.length > 0
-            ? folderPath[folderPath.length - 1].name
-            : "All Files")}
-        {activeTab === "starred" && "Starred Files"}
-        {activeTab === "trash" && "Trash"}
-      </h2>
+  const title =
+    activeTab === "all"
+      ? folderPath.length > 0
+        ? folderPath[folderPath.length - 1].name
+        : "All Files"
+      : activeTab === "starred"
+        ? "Starred Files"
+        : "Trash";
 
-      <div className="flex gap-2 sm:gap-3 self-end sm:self-auto">
-        {/* Refresh button */}
+  const subtitle =
+    activeTab === "all"
+      ? "Manage and organize your uploaded files"
+      : activeTab === "starred"
+        ? "Your favorite important files"
+        : "Deleted files stored temporarily";
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      {/* Title */}
+      <div className="space-y-1">
+        <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-zinc-100">
+          {title}
+        </h2>
+
+        <p className="text-sm text-zinc-400">{subtitle}</p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3">
+        {/* Refresh */}
         <button
           onClick={onRefresh}
-          className="flex flex-1 items-center gap-2 px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition"
+          className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-950/40 backdrop-blur-md border border-zinc-800 shadow-sm hover:shadow-md hover:bg-zinc-900/60 active:scale-[0.98] transition-all duration-200"
         >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
+          <RefreshCw className="h-4 w-4 text-indigo-400" />
+          <span className="text-sm font-medium text-zinc-200">Refresh</span>
         </button>
 
-        {/* Empty Trash button */}
-        {activeTab === "trash" && trashCount > 0 && (
+        {/* Empty Trash */}
+        {activeTab === "trash" && (
           <button
             onClick={onEmptyTrash}
-            className="flex flex-1 items-center gap-2 px-5 py-2 bg-red-300 text-red-700 font-bold rounded-lg shadow-md shadow-red-200 hover:bg-red-400 transition"
+            disabled={trashCount === 0}
+            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
           >
-            <Trash className="h-4 w-4" />
-            Empty
+            <Trash2 className="h-4 w-4 text-red-400" />
+
+            <span className="text-sm font-semibold text-red-300">
+              Empty {trashCount > 0 ? `(${trashCount})` : ""}
+            </span>
           </button>
         )}
       </div>
     </div>
   );
 }
-

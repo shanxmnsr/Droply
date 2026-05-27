@@ -7,27 +7,20 @@ import { useSignUp } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import {
-  Mail,
-  Lock,
-  AlertCircle,
-  CheckCircle,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import toast from "react-hot-toast";
+import { Mail, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { signUpSchema } from "@/schemas/signUpSchema";
 
 export default function SignUpForm() {
   const router = useRouter();
   const { signUp, isLoaded, setActive } = useSignUp();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
-  const [verificationError, setVerificationError] = useState<string | null>(
-    null
-  );
+
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     control,
@@ -35,247 +28,234 @@ export default function SignUpForm() {
     formState: { errors },
   } = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
-    defaultValues: { email: "", password: "" },
+
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
+  // SIGN UP
   const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
     if (!isLoaded || !signUp) return;
+
     setIsSubmitting(true);
-    setAuthError(null);
 
     try {
-      const devBypass = process.env.NODE_ENV === "development";
-
       await signUp.create({
         emailAddress: data.email,
         password: data.password,
-        ...(devBypass ? { bypassCaptcha: true } : {}),
       });
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await signUp.prepareEmailAddressVerification({
+        strategy: "email_code",
+      });
+
+      toast.success("Verification code sent!");
       setVerifying(true);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setAuthError(error.message);
-      } else {
-        setAuthError("An error occurred during sign-up. Please try again.");
-      }
+      toast.error(error instanceof Error ? error.message : "Sign up failed");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleVerificationSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
+  // VERIFY
+  const handleVerificationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLoaded || !signUp) return;
 
-    setIsSubmitting(true);
-    setVerificationError(null);
+    if (!isLoaded || !signUp) return;
 
     try {
       const result = await signUp.attemptEmailAddressVerification({
         code: verificationCode,
       });
+
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await setActive({
+          session: result.createdSessionId,
+        });
+
+        toast.success("Welcome!");
         router.push("/dashboard");
-      } else {
-        setVerificationError(
-          "Verification could not be completed. Please try again."
-        );
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setVerificationError(error.message);
-      } else {
-        setVerificationError(
-          "An error occurred during verification. Please try again."
-        );
-      }
-    } finally {
-      setIsSubmitting(false);
+    } catch {
+      toast.error("Verification failed");
     }
   };
 
-  // Verification form
   if (verifying) {
     return (
-      <div className="card w-full max-w-md bg-base-100 border border-black shadow-xl mx-auto">
-        <div className="card-body">
-          <h1 className="flex justify-center card-title text-2xl font-bold text-center">
-            Verify Your Email
-          </h1>
-          <p className="text-center text-gray-500 mb-4">
-            Enter the code sent to your email to complete signup
-          </p>
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl p-6">
+        <h1 className="text-xl font-semibold text-white text-center">
+          Verify Email
+        </h1>
 
-          <div className="border border-gray-300 mb-5"></div>
+        <p className="text-sm text-white/50 text-center mt-1">
+          Enter 6-digit code
+        </p>
 
-          {verificationError && (
-            <div className="alert alert-error mb-4 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              <span>{verificationError}</span>
-            </div>
-          )}
+        <input
+          value={verificationCode}
+          onChange={(e) => setVerificationCode(e.target.value)}
+          placeholder="123456"
+          className="mt-5 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-center tracking-widest text-white outline-none focus:border-indigo-500/40"
+        />
 
-          <form onSubmit={handleVerificationSubmit} className="space-y-4">
-            <div className="form-control w-full">
-              <label className="label font-bold mb-3">
-                <span className="label-text">Verification Code</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                  <Mail className="h-4 w-4" />
-                </span>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="Enter code"
-                  className="input input-bordered border w-full pl-2 mb-3"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition $`}
-            >
-              {isSubmitting ? "Verifying..." : "Verify Email"}
-            </button>
-          </form>
-        </div>
+        <button
+          onClick={handleVerificationSubmit}
+          className="mt-4 w-full py-2.5 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 transition"
+        >
+          Verify
+        </button>
       </div>
     );
   }
 
-  // Main signup form
   return (
-    <div className="card w-full max-w-md border border-black bg-base-100 shadow-xl mx-auto">
-      <div className="card-body">
-        <h1 className="flex justify-center card-title text-2xl font-bold text-center mb-2">
+    <div className="w-full max-w-md rounded-3xl bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.4)] p-7 transition hover:-translate-y-2">
+      {/* HEADER */}
+      <div className="text-center mb-6">
+        <h1 className="text-xl font-semibold text-white">
           Create Your Account
         </h1>
-        <p className="text-center text-gray-500 mb-4">
-          Sign up to start managing your images securely.
-        </p>
 
-        <div className="border border-gray-300 mb-5"></div>
+        <p className="text-sm text-white/50 mt-1">Start using Droply</p>
+      </div>
 
-        {authError && (
-          <div className="alert alert-error mb-4 flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            <span>{authError}</span>
-          </div>
-        )}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* EMAIL */}
+        <div>
+          <label className="text-sm font-semibold text-white/60">Email</label>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Email input */}
-          <div className="form-control w-full">
-            <label className="label font-bold mb-2">
-              <span className="label-text">Email</span>
-            </label>
+          <div className="mt-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 focus-within:border-indigo-500/40">
+            <Mail className="h-4 w-4 text-white/40" />
+
             <Controller
               name="email"
               control={control}
-              defaultValue=""
               render={({ field }) => (
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Mail className="h-4 w-4" />
-                  </span>
-                  <input
-                    type="email"
-                    placeholder="your.email@example.com"
-                    {...field}
-                    className={`input input-bordered border w-full pl-2 ${
-                      errors.email ? "input-error" : ""
-                    }`}
-                  />
-                </div>
+                <input
+                  {...field}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full bg-transparent outline-none text-sm text-white"
+                />
               )}
             />
-            {errors.email && (
-              <span className="text-sm text-error mt-1">
-                {errors.email.message}
-              </span>
-            )}
           </div>
 
-          {/* Password input */}
-          <div className="form-control w-full">
-            <label className="label font-bold mb-2">
-              <span className="label-text">Password</span>
-            </label>
+          {errors.email && (
+            <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* PASSWORD */}
+        <div>
+          <label className="text-sm font-semibold text-white/60">
+            Password
+          </label>
+
+          <div className="mt-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 focus-within:border-indigo-500/40">
+            <Lock className="h-4 w-4 text-white/40" />
+
             <Controller
               name="password"
               control={control}
-              defaultValue=""
               render={({ field }) => (
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Lock className="h-4 w-4" />
-                  </span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...field}
-                    className={`input input-bordered border w-full pl-2 pr-10 ${
-                      errors.password ? "input-error" : ""
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 btn btn-ghost btn-sm p-1"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                <input
+                  {...field}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="w-full bg-transparent outline-none text-sm text-white"
+                />
               )}
             />
-            {errors.password && (
-              <span className="text-sm text-error mt-1">
-                {errors.password.message}
-              </span>
-            )}
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-white/40 hover:text-white/70"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
 
-          {/* CAPTCHA div */}
-          <div id="clerk-captcha" className="my-4 flex justify-center" />
-
-          <div className="flex items-start gap-2 mt-2">
-            <CheckCircle className="h-5 w-5 text-primary mt-1" />
-            <p className="text-sm text-gray-500">
-              By signing up, you agree to our Terms of Service and Privacy
-              Policy
+          {errors.password && (
+            <p className="text-xs text-red-400 mt-1">
+              {errors.password.message}
             </p>
+          )}
+        </div>
+
+        {/* CONFIRM PASSWORD */}
+        <div>
+          <label className="text-sm font-semibold text-white/60">
+            Confirm Password
+          </label>
+
+          <div className="mt-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 focus-within:border-indigo-500/40">
+            <Lock className="h-4 w-4 text-white/40" />
+
+            <Controller
+              name="confirmPassword"
+              control={control}
+              render={({ field }) => (
+                <input
+                  {...field}
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="w-full bg-transparent outline-none text-sm text-white"
+                />
+              )}
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="text-white/40 hover:text-white/70"
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
 
-          <button
-            type="submit"
-            className={`flex w-full justify-center px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md shadow-indigo-200 hover:bg-indigo-400 transition $`}
-          >
-            {isSubmitting ? "Creating account..." : "Create Account"}
-          </button>
-        </form>
+          {errors.confirmPassword && (
+            <p className="text-xs text-red-400 mt-1">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
 
-        <p className="mt-4 text-center text-sm text-gray-500">
-          Already have an account?{" "}
-          <Link
-            href="/sign-in"
-            className="text-primary font-medium hover:underline"
-          >
-            Sign in
-          </Link>
-        </p>
-      </div>
+        {/* BUTTON */}
+        <div className="flex items-start gap-3 mt-3 px-1">
+          <div className="mt-0.5">
+            <CheckCircle className="h-5 w-5 text-indigo-400 mt-1" />
+          </div>
+
+          <p className="text-sm text-zinc-400 leading-relaxed">
+            By signing up, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
+
+        <button
+          disabled={isSubmitting}
+          className="w-full mt-5 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 text-white font-semibold tracking-wide shadow-lg shadow-indigo-500/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? "Creating your Droply account..." : "Create Account"}
+        </button>
+      </form>
+
+      {/* FOOTER */}
+      <p className="text-center text-sm text-white/50 mt-6">
+        Already have an account?{" "}
+        <Link
+          href="/sign-in"
+          className="text-indigo-400 hover:text-indigo-300 font-bold"
+        >
+          Sign in
+        </Link>
+      </p>
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
   _request: NextRequest,
-  props: { params: Promise<{ fileId: string }> }
+  props: { params: Promise<{ fileId: string }> },
 ) {
   try {
     const { userId } = await auth();
@@ -17,7 +17,10 @@ export async function DELETE(
     const { fileId } = await props.params;
 
     if (!fileId) {
-      return NextResponse.json({ error: "File ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File ID is required" },
+        { status: 400 },
+      );
     }
 
     const [file] = await db
@@ -36,6 +39,9 @@ export async function DELETE(
     return NextResponse.json({ message: "File deleted successfully" });
   } catch (error) {
     console.error("Delete file error:", error);
-    return NextResponse.json({ error: "Failed to delete file" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete file" },
+      { status: 500 },
+    );
   }
 }

@@ -1,7 +1,7 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Droply", // Your project name
+  name: "Droply",
   description: "File upload & management app built with Next.js and DaisyUI",
   navItems: [
     { label: "Home", href: "/" },
@@ -21,10 +21,10 @@ export const siteConfig = {
     { label: "Logout", href: "/logout" },
   ],
   links: {
-    github: "https://github.com/shanxmnsr/Droply", // Your GitHub repo
-    twitter: "",   // Optional, fill your Twitter if needed
-    docs: "",      // Optional
-    discord: "",   // Optional
-    sponsor: "",   // Optional
+    github: "https://github.com/shanxmnsr/Droply",
+    twitter: "",
+    docs: "",
+    discord: "",
+    sponsor: "",
   },
 };

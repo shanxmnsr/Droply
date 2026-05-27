@@ -6,10 +6,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   _request: NextRequest,
-  props: { params: Promise<{ fileId: string }> }
+  props: { params: Promise<{ fileId: string }> },
 ) {
   try {
     const { userId } = await auth();
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -17,7 +18,10 @@ export async function PATCH(
     const { fileId } = await props.params;
 
     if (!fileId) {
-      return NextResponse.json({ error: "File ID is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "File ID is required" },
+        { status: 400 },
+      );
     }
 
     const [file] = await db
@@ -31,15 +35,24 @@ export async function PATCH(
 
     const updatedFiles = await db
       .update(files)
-      .set({ isStarred: !file.isStarred })
+      .set({
+        isStarred: !file.isStarred,
+        updatedAt: new Date(),
+      })
       .where(and(eq(files.id, fileId), eq(files.userId, userId)))
       .returning();
 
     const updatedFile = updatedFiles[0];
 
-    return NextResponse.json({ file: updatedFile });
+    return NextResponse.json({
+      file: updatedFile,
+    });
   } catch (error) {
     console.error("Star file error:", error);
-    return NextResponse.json({ error: "Failed to update star status" }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Failed to update star status" },
+      { status: 500 },
+    );
   }
 }

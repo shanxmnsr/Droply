@@ -1,102 +1,3 @@
-
-// // already existed code
-// "use client";
-
-// import { File, Star, Trash } from "lucide-react";
-// import type { File as FileType } from "@/lib/db/schema";
-
-// interface FileTabsProps {
-//   activeTab: "all" | "starred" | "trash";
-//   onTabChange: (key: "all" | "starred" | "trash") => void;
-//   files: FileType[];
-//   starredCount: number;
-//   trashCount: number;
-
-// }
-
-// export default function  FileTabs({
-//   activeTab,
-//   onTabChange,
-//   files,
-//   starredCount,
-//   trashCount,
-// }: FileTabsProps) {
-//   // Define tab data
-//   const tabs = [
-//     {
-//       key: "all" as const,
-//       label: "All Files",
-//       icon: File,
-//       color: "text-default-700",
-//       count: files.filter((file) => !file.isTrash).length,
-//       badgeStyle: "bg-default-200 text-default-800",
-//     },
-//     {
-//       key: "starred" as const,
-//       label: "Starred",
-//       icon: Star,
-//       color: "text-yellow-600",
-//       count: starredCount,
-//       badgeStyle: "bg-yellow-100 text-yellow-800",
-//     },
-//     {
-//       key: "trash" as const,
-//       label: "Trash",
-//       icon: Trash,
-//       color: "text-red-600",
-//       count: trashCount,
-//       badgeStyle: "bg-red-100 text-red-800",
-//     },
-//   ];
-
-//   return (
-//     <div className="overflow-x-auto sm:overflow-visible">
-//       <div className="flex flex-nowrap sm:flex-wrap gap-0 sm:gap-8 p-0 sm:p-0 min-w-max">
-//         {tabs.map((tab) => {
-//           const Icon = tab.icon;
-//           const isActive = activeTab === tab.key;
-
-//           return (
-//             <button
-//               key={tab.key}
-//               onClick={() => onTabChange(tab.key)}
-//               className={`relative flex items-center gap-1.5 py-3 px-3 transition-colors whitespace-nowrap border-b-2 ${
-//                 isActive
-//                   ? "border-primary text-primary"
-//                   : "border-transparent text-default-600 hover:text-primary/70"
-//               }`}
-//             >
-//               <Icon
-//                 className={`h-4 w-4 sm:h-5 sm:w-5 ${
-//                   isActive ? "text-primary" : tab.color
-//                 }`}
-//               />
-//               <span
-//                 className={`font-medium ${
-//                   isActive ? "text-primary" : "text-default-700"
-//                 }`}
-//               >
-//                 {tab.label}
-//               </span>
-//               <span
-//                 className={`text-xs px-2 py-0.5 rounded-full font-semibold ${tab.badgeStyle}`}
-//               >
-//                 {tab.count}
-//               </span>
-//             </button>
-//           );
-//         })}
-//       </div>
-//     </div>
-//   );
-// }
-
-
-
-
-
-
-// // this is for global count
 "use client";
 
 import { File, Star, Trash } from "lucide-react";
@@ -121,59 +22,56 @@ export default function FileTabs({
       key: "all" as const,
       label: "All Files",
       icon: File,
-      color: "text-default-700",
       count: allCount,
-      badgeStyle: "bg-default-200 text-default-800",
     },
     {
       key: "starred" as const,
       label: "Starred",
       icon: Star,
-      color: "text-yellow-600",
       count: starredCount,
-      badgeStyle: "bg-yellow-100 text-yellow-800",
     },
     {
       key: "trash" as const,
       label: "Trash",
       icon: Trash,
-      color: "text-red-600",
       count: trashCount,
-      badgeStyle: "bg-red-100 text-red-800",
     },
   ];
 
   return (
-    <div className="overflow-x-auto sm:overflow-visible">
-      <div className="flex flex-nowrap sm:flex-wrap gap-0 sm:gap-8 min-w-max">
+    <div className="overflow-x-auto">
+      <div className="flex w-max items-center gap-2 rounded-2xl border border-zinc-800/70 bg-zinc-900/50 p-1">
         {tabs.map((tab) => {
           const Icon = tab.icon;
+
           const isActive = activeTab === tab.key;
 
           return (
             <button
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
-              className={`relative flex items-center gap-1.5 py-3 px-3 transition-colors whitespace-nowrap border-b-2 ${
-                isActive
-                  ? "border-primary text-primary"
-                  : "border-transparent text-default-600 hover:text-primary/70"
-              }`}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200
+                          ${
+                            isActive
+                              ? "bg-indigo-500/10 text-zinc-100 border border-indigo-500/20"
+                              : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/60"
+                          }`}
             >
               <Icon
-                className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                  isActive ? "text-primary" : tab.color
+                className={`h-4 w-4 ${
+                  isActive ? "text-sky-400" : "text-zinc-500"
                 }`}
               />
+
+              <span>{tab.label}</span>
+
               <span
-                className={`font-medium ${
-                  isActive ? "text-primary" : "text-default-700"
-                }`}
-              >
-                {tab.label}
-              </span>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full font-semibold ${tab.badgeStyle}`}
+                className={`rounded-full px-2 py-0.5 text-xs
+                            ${
+                              isActive
+                                ? "bg-indigo-500/15 text-indigo-300"
+                                : "bg-zinc-800 text-zinc-400"
+                            }`}
               >
                 {tab.count}
               </span>
@@ -184,95 +82,3 @@ export default function FileTabs({
     </div>
   );
 }
-
-
-
-
-// this is for per page count "use client";
-
-// import { File, Star, Trash } from "lucide-react";
-
-// interface FileTabsProps {
-//   activeTab: "all" | "starred" | "trash";
-//   onTabChange: (key: "all" | "starred" | "trash") => void;
-//   allCount: number;
-//   starredCount: number;
-//   trashCount: number;
-// }
-
-// export default function FileTabs({
-//   activeTab,
-//   onTabChange,
-//   allCount,
-//   starredCount,
-//   trashCount,
-// }: FileTabsProps) {
-//   // Define tab data
-//   const tabs = [
-//     {
-//       key: "all" as const,
-//       label: "All Files",
-//       icon: File,
-//       color: "text-default-700",
-//       count: allCount,
-//       badgeStyle: "bg-default-200 text-default-800",
-//     },
-//     {
-//       key: "starred" as const,
-//       label: "Starred",
-//       icon: Star,
-//       color: "text-yellow-600",
-//       count: starredCount,
-//       badgeStyle: "bg-yellow-100 text-yellow-800",
-//     },
-//     {
-//       key: "trash" as const,
-//       label: "Trash",
-//       icon: Trash,
-//       color: "text-red-600",
-//       count: trashCount,
-//       badgeStyle: "bg-red-100 text-red-800",
-//     },
-//   ];
-
-//   return (
-//     <div className="overflow-x-auto sm:overflow-visible">
-//       <div className="flex flex-nowrap sm:flex-wrap gap-0 sm:gap-8 p-0 sm:p-0 min-w-max">
-//         {tabs.map((tab) => {
-//           const Icon = tab.icon;
-//           const isActive = activeTab === tab.key;
-
-//           return (
-//             <button
-//               key={tab.key}
-//               onClick={() => onTabChange(tab.key)}
-//               className={`relative flex items-center gap-1.5 py-3 px-3 transition-colors whitespace-nowrap border-b-2 ${
-//                 isActive
-//                   ? "border-primary text-primary"
-//                   : "border-transparent text-default-600 hover:text-primary/70"
-//               }`}
-//             >
-//               <Icon
-//                 className={`h-4 w-4 sm:h-5 sm:w-5 ${
-//                   isActive ? "text-primary" : tab.color
-//                 }`}
-//               />
-//               <span
-//                 className={`font-medium ${
-//                   isActive ? "text-primary" : "text-default-700"
-//                 }`}
-//               >
-//                 {tab.label}
-//               </span>
-//               <span
-//                 className={`text-xs px-2 py-0.5 rounded-full font-semibold ${tab.badgeStyle}`}
-//               >
-//                 {tab.count}
-//               </span>
-//             </button>
-//           );
-//         })}
-//       </div>
-//     </div>
-//   );
-// }

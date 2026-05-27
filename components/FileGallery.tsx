@@ -1,61 +1,31 @@
-// import { IKImage } from "imagekitio-react";
-// import type { File as FileType } from "@/lib/db/schema";
-// import { getIKPath } from "@/lib/imagekit";
-
-// interface FileGalleryProps {
-//   files: FileType[];
-// }
-
-// export default function FileGallery({ files }: FileGalleryProps) {
-//   return (
-//     <div className="flex flex-wrap gap-4 mt-4">
-//       {files.map((file) => {
-//         const filePath = file.type?.startsWith("video/") ? file.thumbnailUrl : file.path;
-//         const normalizedPath = getIKPath(filePath);
-
-//         return (
-//           <div
-//             key={file.id}
-//             className="flex flex-col items-center space-y-2 border border-gray-200 rounded-md p-2 w-[200px]"
-//           >
-//             {normalizedPath ? (
-//               <IKImage
-//                 urlEndpoint={process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT ?? ""}
-//                 path={normalizedPath}
-//                 alt={file.name}
-//                 width={200}
-//                 height={200}
-//                 className="rounded-md object-cover w-[200px] h-[200px]"
-//                 loading="lazy"
-//               />
-//             ) : (
-//               <div className="flex items-center justify-center w-[200px] h-[200px] bg-gray-100 rounded-md text-gray-400 text-sm">
-//                 No preview
-//               </div>
-//             )}
-//             <p className="text-sm text-gray-700 truncate w-[180px] text-center">
-//               {file.name}
-//             </p>
-//           </div>
-//         );
-//       })}
-//     </div>
-//   );
-// }
-
-
+"use client";
 
 import type { File as FileType } from "@/lib/db/schema";
-import Image from "next/image";
+import AppImage from "@/components/AppImage";
+import {
+  FileText,
+  Image as ImageIcon,
+  PlayCircle,
+  FileArchive,
+} from "lucide-react";
 
 interface FileGalleryProps {
   files: FileType[];
 }
 
 export default function FileGallery({ files }: FileGalleryProps) {
+  const getFileIcon = (type?: string) => {
+    if (!type) return FileText;
+    if (type.startsWith("image/")) return ImageIcon;
+    if (type.startsWith("video/")) return PlayCircle;
+    return FileArchive;
+  };
+
   return (
-    <div className="flex flex-wrap gap-4 mt-4">
+    <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {files.map((file) => {
+        const FileIcon = getFileIcon(file.type);
+
         const previewUrl =
           file.type?.startsWith("video/") && file.thumbnailUrl
             ? file.thumbnailUrl
@@ -64,24 +34,51 @@ export default function FileGallery({ files }: FileGalleryProps) {
         return (
           <div
             key={file.id}
-            className="flex flex-col items-center space-y-2 border border-gray-200 rounded-md p-2 w-[200px]"
+            className="group overflow-hidden rounded-2xl border border-zinc-800/70 bg-zinc-900/50 transition-all duration-200 hover:border-indigo-500/30 hover:-translate-y-1"
           >
-            {previewUrl ? (
-              <Image
-                src={previewUrl}
-                alt={file.name}
-                className="rounded-md object-cover w-[200px] h-[200px]"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex items-center justify-center w-[200px] h-[200px] bg-gray-100 rounded-md text-gray-400 text-sm">
-                No preview
-              </div>
-            )}
+            {/* Preview */}
+            <div className="relative aspect-square overflow-hidden bg-zinc-950">
+              {previewUrl ? (
+                <>
+                  <AppImage
+                    src={previewUrl}
+                    alt={file.name}
+                    width={400}
+                    height={400}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
 
-            <p className="text-sm text-gray-700 truncate w-[180px] text-center">
-              {file.name}
-            </p>
+                  {/* Video Badge */}
+                  {file.type?.startsWith("video/") && (
+                    <div className="absolute right-3 top-3 rounded-lg bg-black/60 p-2 backdrop-blur-sm">
+                      <PlayCircle className="h-4 w-4 text-white" />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-zinc-500">
+                  <FileIcon className="h-10 w-10" />
+                  <span className="text-xs">No Preview</span>
+                </div>
+              )}
+            </div>
+
+            {/* File Info */}
+            <div className="flex items-start gap-3 p-4">
+              <div className="rounded-lg bg-indigo-500/10 p-2 border border-indigo-500/20">
+                <FileIcon className="h-4 w-4 text-sky-400" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-zinc-100">
+                  {file.name}
+                </p>
+
+                <p className="mt-1 text-xs text-zinc-400">
+                  {file.type?.split("/")[1]?.toUpperCase() || "FILE"}
+                </p>
+              </div>
+            </div>
           </div>
         );
       })}

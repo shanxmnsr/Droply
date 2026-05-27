@@ -19,6 +19,56 @@
 
 
 
+// import type { NextConfig } from "next";
+
+// const nextConfig: NextConfig = {
+//   experimental: {
+//     optimizeCss: false,
+//     middlewareClientMaxBodySize: "50mb",
+//   },
+
+//   images: {
+//     domains: ["img.clerk.com"],
+//   },
+// };
+
+// export default nextConfig;
+
+
+
+
+
+
+
+
+
+
+
+
+
+// this code is working 
+// import type { NextConfig } from "next";
+
+// const nextConfig: NextConfig = {
+//   experimental: {
+//     optimizeCss: false,
+//     middlewareClientMaxBodySize: "50mb",
+//   },
+
+//   images: {
+//     domains: [
+//       "img.clerk.com",
+//       "ik.imagekit.io",
+//     ],
+//   },
+// };
+
+// export default nextConfig;
+
+
+
+
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -28,7 +78,16 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    domains: ["img.clerk.com"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+      },
+      {
+        protocol: "https",
+        hostname: "ik.imagekit.io",
+      },
+    ],
   },
 };
 

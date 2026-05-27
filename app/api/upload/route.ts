@@ -1,5 +1,3 @@
-
-
 import { db } from "@/lib/db";
 import { files } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
@@ -7,103 +5,79 @@ import { NextRequest, NextResponse } from "next/server";
 import imagekit from "@/lib/imagekit-client";
 import { v4 as uuidv4 } from "uuid";
 
-// Limits
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;   // 5MB
-const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 
-// ImageKit response type
 interface ImageKitUploadResponse {
-  filePath: string;
+  fileId: string;
+  name: string;
   url: string;
-  thumbnailUrl?: string | null;
+  filePath: string;
+  thumbnailUrl?: string;
 }
 
-// DB row type
-interface FileRow {
-  id: string;
-  name: string;
-  path: string;
-  size: number;
-  type: string;
-  fileUrl: string;
-  thumbnailUrl?: string | null;
-  userId: string;
-  parentId: string | null;
-  isFolder: boolean;
-  isStarred: boolean;
-  isTrash: boolean;
-}
+type FileWithPath = File & {
+  webkitRelativePath?: string;
+};
 
 export async function POST(req: NextRequest) {
   try {
-    /* AUTH  */
     const { userId } = await auth();
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    /*  PARSE FORM DATA  */
     let formData: FormData;
+
     try {
       formData = await req.formData();
     } catch {
-      return NextResponse.json(
-        { error: "Failed to parse form data. File may be too large." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
     }
 
-    const allFiles: File[] = formData
+    const allFiles = formData
       .getAll("files")
       .filter((f): f is File => f instanceof File);
 
-    if (!allFiles.length) {
+    if (allFiles.length === 0) {
       return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
     }
 
-    const rootParentId =
-      (formData.get("parentId") as string) || null;
+    const rootParentId = (formData.get("parentId") as string) || null;
 
-    const uploadedFiles: FileRow[] = [];
+    const uploadedFiles = [];
     const folderMap: Record<string, string> = {};
 
-    /* ------------ PROCESS FILES ------------ */
     for (const fileData of allFiles) {
       const isImage = fileData.type.startsWith("image/");
       const isVideo = fileData.type.startsWith("video/");
 
-      /* -------- SIZE VALIDATION (IMPORTANT) -------- */
+      // SIZE VALIDATION
       if (isImage && fileData.size > MAX_IMAGE_SIZE) {
         return NextResponse.json(
-          { error: `Image "${fileData.name}" exceeds 5MB limit` },
-          { status: 400 }
+          { error: `${fileData.name} exceeds 5MB limit` },
+          { status: 400 },
         );
       }
 
       if (isVideo && fileData.size > MAX_VIDEO_SIZE) {
         return NextResponse.json(
-          { error: `Video "${fileData.name}" exceeds 100MB limit` },
-          { status: 400 }
+          { error: `${fileData.name} exceeds 100MB limit` },
+          { status: 400 },
         );
       }
 
-      if (!isImage && !isVideo) {
-        return NextResponse.json(
-          { error: `Unsupported file type: ${fileData.name}` },
-          { status: 400 }
-        );
-      }
-
-      /* -------- HANDLE FOLDER STRUCTURE -------- */
       const relativePath =
-        (fileData as { webkitRelativePath?: string }).webkitRelativePath ||
-        fileData.name;
+        (fileData as FileWithPath).webkitRelativePath || fileData.name;
 
       const parts = relativePath.split("/");
       const fileName = parts.pop()!;
+
       let currentParentId = rootParentId;
       let currentPath = "";
 
+      // FOLDER CREATION
       for (const folderName of parts) {
         currentPath += `/${folderName}`;
 
@@ -131,28 +105,45 @@ export async function POST(req: NextRequest) {
         currentParentId = folderMap[currentPath];
       }
 
-      /* -------- UPLOAD TO IMAGEKIT -------- */
+      // IMAGEKIT UPLOAD
       let uploadResponse: ImageKitUploadResponse;
+
       try {
-        const arrayBuffer = await fileData.arrayBuffer();
-        const base64File = `data:${fileData.type};base64,${Buffer.from(
-          arrayBuffer
-        ).toString("base64")}`;
+        const buffer = Buffer.from(await fileData.arrayBuffer());
+
+        const base64File = `data:${fileData.type};base64,${buffer.toString(
+          "base64",
+        )}`;
 
         uploadResponse = (await imagekit.upload({
           file: base64File,
           fileName: `${uuidv4()}_${fileName}`,
-          folder: `/${userId}`,
+          folder: `/droply/files/${userId}`,
         })) as ImageKitUploadResponse;
+
+        console.log("ImageKit upload success:", uploadResponse);
       } catch (err) {
-        console.error("ImageKit upload failed:", err);
+        console.error(" ImageKit upload failed:", err);
+
         return NextResponse.json(
-          { error: "Image upload failed" },
-          { status: 500 }
+          {
+            error: "File upload failed (check ImageKit config)",
+          },
+          { status: 500 },
         );
       }
 
-      /* -------- SAVE TO DATABASE -------- */
+      // SAFETY CHECK
+      if (!uploadResponse?.url || !uploadResponse?.filePath) {
+        return NextResponse.json(
+          {
+            error: "Invalid upload response from ImageKit",
+          },
+          { status: 500 },
+        );
+      }
+
+      // DB SAVE
       const fileId = uuidv4();
 
       const [savedFile] = await db
@@ -173,19 +164,19 @@ export async function POST(req: NextRequest) {
         })
         .returning();
 
-      uploadedFiles.push(savedFile as FileRow);
+      uploadedFiles.push(savedFile);
     }
 
-    /* ------------ SUCCESS RESPONSE ----------- */
     return NextResponse.json({
       message: "Files uploaded successfully",
       files: uploadedFiles,
     });
   } catch (error) {
     console.error("Upload Error:", error);
+
     return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }

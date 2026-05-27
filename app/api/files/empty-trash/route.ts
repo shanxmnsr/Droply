@@ -9,7 +9,10 @@ export async function GET() {
   try {
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized", files: [] }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized", files: [] },
+        { status: 401 },
+      );
     }
 
     const trashedFiles = await db
@@ -20,7 +23,10 @@ export async function GET() {
     return NextResponse.json(Array.isArray(trashedFiles) ? trashedFiles : []);
   } catch (error) {
     console.error("Error fetching trashed files:", error);
-    return NextResponse.json({ error: "Failed to load trash", files: [] }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to load trash", files: [] },
+      { status: 500 },
+    );
   }
 }
 
@@ -47,9 +53,14 @@ export async function DELETE() {
       .delete(files)
       .where(and(eq(files.userId, userId), eq(files.isTrash, true)));
 
-    return NextResponse.json({ message: `Emptied trash. Deleted ${trashedFiles.length} file(s).` });
+    return NextResponse.json({
+      message: `Emptied trash. Deleted ${trashedFiles.length} file(s).`,
+    });
   } catch (error) {
     console.error("Error emptying trash:", error);
-    return NextResponse.json({ error: "Failed to empty trash" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to empty trash" },
+      { status: 500 },
+    );
   }
 }

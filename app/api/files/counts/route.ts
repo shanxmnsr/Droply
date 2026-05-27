@@ -16,19 +16,15 @@ export async function GET() {
 
   const userCondition = eq(files.userId, userId);
 
-  // ✅ ALL FILES (root level, non-trash)
+  // ALL FILES
   const all = await db
     .select()
     .from(files)
     .where(
-      and(
-        userCondition,
-        eq(files.isTrash, false),
-        isNull(files.parentId) // 🔴 THIS LINE
-      )
+      and(userCondition, eq(files.isTrash, false), isNull(files.parentId)),
     );
 
-  // ⭐ STARRED (root level, non-trash)
+  // STARRED
   const starred = await db
     .select()
     .from(files)
@@ -37,11 +33,11 @@ export async function GET() {
         userCondition,
         eq(files.isStarred, true),
         eq(files.isTrash, false),
-        isNull(files.parentId) // 🔴 THIS LINE
-      )
+        isNull(files.parentId),
+      ),
     );
 
-  // 🗑 TRASH (GLOBAL – no parentId filter)
+  // TRASH
   const trash = await db
     .select()
     .from(files)

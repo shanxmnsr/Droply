@@ -1,5 +1,5 @@
 import React from "react";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, X } from "lucide-react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   title,
   description,
   icon: Icon,
-  iconColor = "text-danger",
+  iconColor = "text-rose-400",
   confirmText = "Confirm",
   cancelText = "Cancel",
   confirmColor = "danger",
@@ -35,56 +35,96 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   React.useEffect(() => {
     if (isOpen) {
       modalRef.current?.showModal();
+      document.body.style.overflow = "hidden";
     } else {
       modalRef.current?.close();
+      document.body.style.overflow = "";
     }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [isOpen]);
 
   const handleClose = () => onOpenChange(false);
 
+  const confirmButtonStyles = {
+    primary:
+      "bg-indigo-500 hover:bg-indigo-400 text-white shadow-indigo-500/20",
+    danger: "bg-rose-500 hover:bg-rose-400 text-white shadow-rose-500/20",
+    warning: "bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20",
+    success:
+      "bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20",
+    default: "bg-zinc-700 hover:bg-zinc-600 text-white shadow-black/20",
+  };
+
   return (
     <dialog
       ref={modalRef}
-      className="modal backdrop-blur-sm"
+      className="modal bg-black/60 backdrop-blur-md"
       onCancel={handleClose}
     >
-      <div className="modal-box border border-base-300 bg-base-100 shadow-lg">
+      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-zinc-950/95 shadow-2xl shadow-black/40 backdrop-blur-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-2 border-b border-base-300 pb-2">
-          {Icon && <Icon className={`h-5 w-5 ${iconColor}`}/>}
-          <h3 className="font-semibold text-lg">{title}</h3>
+        <div className="flex items-start justify-between border-b border-white/10 px-6 py-5">
+          <div className="flex items-center gap-3">
+            {Icon && (
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-zinc-900">
+                <Icon className={`h-5 w-5 ${iconColor}`} />
+              </div>
+            )}
+
+            <div>
+              <h3 className="text-lg font-semibold text-white">{title}</h3>
+            </div>
+          </div>
+
+          <button
+            onClick={handleClose}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-zinc-900 text-zinc-400 transition hover:bg-zinc-800 hover:text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Body */}
-        <div className="py-4 space-y-4">
+        <div className="space-y-5 px-6 py-5">
           {isDangerous && warningMessage && (
-            <div className="bg-error/10 text-error p-4 rounded-lg border border-error/20">
+            <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-4">
               <div className="flex items-start gap-3">
                 {Icon && (
-                  <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${iconColor}`}/>
+                  <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-rose-500/15">
+                    <Icon className={`h-4 w-4 ${iconColor}`} />
+                  </div>
                 )}
-                <div>
-                  <p className="font-medium">This action cannot be undone</p>
-                  <p className="text-sm mt-1">{warningMessage}</p>
-                </div>
 
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-rose-300">
+                    This action cannot be undone
+                  </p>
+
+                  <p className="text-sm leading-relaxed text-rose-200/80">
+                    {warningMessage}
+                  </p>
+                </div>
               </div>
             </div>
           )}
-          <p>{description}</p>
 
+          <p className="text-sm leading-relaxed text-zinc-400">{description}</p>
         </div>
 
-        {/* footer */}
-        <div className="modal-action border-t border-base-300 pt-3">
+        {/* Footer */}
+        <div className="flex items-center justify-end gap-3 border-t border-white/10 px-6 py-5">
           <button
-            className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition"
+            className="rounded-xl border border-white/10 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
             onClick={handleClose}
           >
             {cancelText}
           </button>
+
           <button
-            className={`px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-${confirmColor}`}
+            className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-all duration-200 shadow-lg ${confirmButtonStyles[confirmColor]}`}
             onClick={() => {
               onConfirm();
               handleClose();
@@ -93,7 +133,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {confirmText}
           </button>
         </div>
-
       </div>
     </dialog>
   );

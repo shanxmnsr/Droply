@@ -10,14 +10,19 @@ export async function POST(req: Request) {
 
     const { userId } = await auth();
     if (!userId) {
-      return NextResponse.json({ error: "User not authenticated" }, { status: 401 });
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 },
+      );
     }
 
     if (!name || typeof name !== "string") {
-      return NextResponse.json({ error: "Folder name is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Folder name is required" },
+        { status: 400 },
+      );
     }
 
-    // Insert folder into `files` table
     await db.insert(files).values({
       id: uuidv4(),
       name,
@@ -36,6 +41,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Folder creation failed:", error);
-    return NextResponse.json({ error: "Folder creation failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Folder creation failed" },
+      { status: 500 },
+    );
   }
 }

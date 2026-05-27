@@ -1,30 +1,50 @@
 "use client";
 
-import { File } from "lucide-react";
+import { UploadCloud, Star, Trash2 } from "lucide-react";
 
 interface FileEmptyStateProps {
-  activeTab: string;
+  activeTab: "all" | "starred" | "trash";
 }
 
 export default function FileEmptyState({ activeTab }: FileEmptyStateProps) {
+  const emptyStates = {
+    all: {
+      icon: UploadCloud,
+      title: "No files yet",
+      description: "Upload files to start organizing your workspace.",
+    },
+    starred: {
+      icon: Star,
+      title: "No starred files",
+      description: "Star important files for quick access.",
+    },
+    trash: {
+      icon: Trash2,
+      title: "Trash is empty",
+      description: "Deleted files will appear here temporarily.",
+    },
+  };
+
+  const state = emptyStates[activeTab] || emptyStates.all;
+  const Icon = state.icon;
+
   return (
-    <div className="card border border-base-300 bg-base-200 shadow-sm">
-      <div className="card-body text-center py-16">
-        <File className="h-16 w-16 mx-auto text-primary/50 mb-6" />
-        <h3 className="text-xl font-semibold mb-2 text-base-content">
-          {activeTab === "all" && "No files available"}
-          {activeTab === "starred" && "No starred files"}
-          {activeTab === "trash" && "Trash is empty"}
-        </h3>
-        <p className="text-base-content/60 mt-2 max-w-md mx-auto">
-          {activeTab === "all" &&
-            "Upload your first file to get started with your personal cloud storage."}
-          {activeTab === "starred" &&
-            "Mark important files with a star to find them quickly when you need them."}
-          {activeTab === "trash" &&
-            "Files you delete will appear here for 30 days before being permanently removed."}
-        </p>
+    <div className="flex flex-col items-center justify-center py-24 text-center">
+      
+      {/* Icon */}
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+        <Icon className="h-7 w-7 text-sky-400" />
       </div>
+
+      {/* Title */}
+      <h3 className="text-xl font-semibold text-zinc-100">
+        {state.title}
+      </h3>
+
+      {/* Description */}
+      <p className="mt-2 max-w-md text-sm text-zinc-400">
+        {state.description}
+      </p>
     </div>
   );
 }

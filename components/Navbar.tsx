@@ -1,11 +1,10 @@
-
 "use client";
 
 import { useClerk, SignedIn, SignedOut } from "@clerk/nextjs";
 import { useRouter, usePathname } from "next/navigation";
-import Image from "next/image";
+import AppImage from "@/components/AppImage";
 import { CloudUpload, ChevronDown, Menu, X } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface SerializedUser {
   id: string;
@@ -18,27 +17,28 @@ interface SerializedUser {
 
 interface NavbarProps {
   user?: SerializedUser | null;
-  setActiveTab?: (tab: string) => void; 
-  initialTab?: string;                  
+  setActiveTab?: (tab: string) => void;
+  initialTab?: string;
 }
 
-export default function Navbar({ user, setActiveTab, initialTab }: NavbarProps) {
+export default function Navbar({
+  user,
+  setActiveTab,
+  initialTab,
+}: NavbarProps) {
   const { signOut } = useClerk();
   const router = useRouter();
   const pathname = usePathname();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeTab, setActiveTabState] = useState(initialTab || "files");
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const [, setActiveTabState] = useState(initialTab || "files");
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isOnDashboard =
     pathname === "/dashboard" || pathname?.startsWith("/dashboard/");
-
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
-  const handleSignOut = () => {
-    signOut(() => router.push("/sign-in"));
-  };
 
   const userDetails = {
     initials: user
@@ -49,6 +49,7 @@ export default function Navbar({ user, setActiveTab, initialTab }: NavbarProps) 
           .join("")
           .toUpperCase() || "U"
       : "U",
+
     displayName: user
       ? user.firstName && user.lastName
         ? `${user.firstName} ${user.lastName}`
@@ -56,208 +57,238 @@ export default function Navbar({ user, setActiveTab, initialTab }: NavbarProps) 
       : "User",
   };
 
-  // Scroll effect
+  const toggleMobileMenu = () => setIsMobileMenuOpen((p) => !p);
+
+  const handleSignOut = () => {
+    signOut(() => router.push("/sign-in"));
+  };
+
+  const switchTab = (tab: string, url: string) => {
+    setActiveTabState(tab);
+    setActiveTab?.(tab);
+    router.replace(url);
+    setIsMobileMenuOpen(false);
+    setIsDropdownOpen(false);
+  };
+
+  // scroll effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu on resize
+  // close dropdown on outside click
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) setIsMobileMenuOpen(false);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  // Prevent scroll when mobile menu is open
-  useEffect(() => {
-    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isMobileMenuOpen]);
-
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (
-        isMobileMenuOpen &&
-        mobileMenuRef.current &&
-        !mobileMenuRef.current.contains(event.target as Node)
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
       ) {
-        const target = event.target as HTMLElement;
-        if (!target.closest('[data-menu-button="true"]')) {
-          setIsMobileMenuOpen(false);
-        }
+        setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isMobileMenuOpen]);
+  }, []);
 
-  // Helper for switching tabs
-  const switchTab = (tab: string, url: string) => {
-    setActiveTabState(tab); 
-    setActiveTab?.(tab);    
-    router.replace(url);
-    setIsMobileMenuOpen(false);
-  };
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? "hidden" : "";
+  }, [isMobileMenuOpen]);
 
   return (
     <header
-      className={`bg-white border-b border-default-200 sticky top-0 z-50 transition-shadow ${
-        isScrolled ? "shadow-sm" : ""
+      className={`sticky top-4 z-50 mx-4 md:mx-6 px-3 transition-all duration-300 rounded-[50px] border border-border shadow-lg shadow-black/20
+      relative 
+      ${
+        isScrolled
+          ? "bg-background/60 backdrop-blur-xl"
+          : "bg-background/30 backdrop-blur-md"
       }`}
     >
-      <div className="max-w-7xl mx-auto w-full py-3 md:py-4 px-4 md:px-6 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center gap-2 z-10">
-          <CloudUpload className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Droply</h1>
+      {/* glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/10 blur-3xl rounded-full" />
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-sky-500/10 blur-3xl rounded-full" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto flex items-center justify-between py-4 px-4">
+        {/* LOGO */}
+        <div className="flex items-center gap-3 cursor-pointer">
+          <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg">
+            <CloudUpload className="h-5 w-5 text-white" />
+          </div>
+
+          <div className="leading-tight">
+            <h1 className="text-white font-bold text-lg">Droply</h1>
+            <p className="text-xs text-white/50">Cloud Storage</p>
+          </div>
         </div>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex gap-4 items-center">
+        {/* DESKTOP */}
+        <div className="hidden md:flex items-center gap-4">
           <SignedOut>
             <button
               onClick={() => router.push("/sign-in")}
-              className="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition"
+              className="px-4 py-2 rounded-xl border border-white/10 text-white hover:bg-white/5"
             >
               Sign In
             </button>
+
             <button
               onClick={() => router.push("/sign-up")}
-              className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
+              className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500"
             >
               Sign Up
             </button>
           </SignedOut>
 
           <SignedIn>
-            <div className="flex items-center gap-4 relative">
-              {!isOnDashboard && (
-                <button
-                  onClick={() => switchTab("files", "/dashboard")}
-                  className="px-5 py-2 bg-indigo-300 text-indigo-700 font-bold rounded-lg shadow-md hover:bg-indigo-400 transition"
-                >
-                  Dashboard
-                </button>
-              )}
+            {!isOnDashboard && (
+              <button
+                onClick={() => switchTab("files", "/dashboard")}
+                className="px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500"
+              >
+                Dashboard
+              </button>
+            )}
 
-              {/* Dropdown */}
-              <div className="dropdown dropdown-end">
-                <label
-                  tabIndex={0}
-                  className="btn btn-ghost btn-sm gap-2 flex items-center"
-                >
-                  <div className="avatar placeholder">
-                    {user?.imageUrl ? (
-                      <div className="w-8 h-8 rounded-full overflow-hidden">
-                        <Image
-                          src={user.imageUrl}
-                          alt="User"
-                          width={32}
-                          height={32}
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
-                        {userDetails.initials}
-                      </div>
-                    )}
-                  </div>
-                  <span className="hidden sm:inline">{userDetails.displayName}</span>
-                  <ChevronDown className="h-4 w-4 ml-1" />
-                </label>
-                <ul
-                  tabIndex={0}
-                  className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 mt-2"
-                >
-                  <li>
-                    <button
-                      className={`p-2 font-semibold hover:bg-gray-100 ${
-                        activeTab === "profile" ? "bg-gray-200 rounded" : ""
-                      }`}
-                      onClick={() =>
-                        switchTab("profile", "/dashboard?tab=profile")
-                      }
-                    >
-                      Profile
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className={`p-2 font-semibold hover:bg-gray-100 ${
-                        activeTab === "files" ? "bg-gray-200 rounded" : ""
-                      }`}
-                      onClick={() => switchTab("files", "/dashboard")}
-                    >
-                      My Files
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      className="p-2 font-semibold hover:bg-gray-100"
-                      onClick={handleSignOut}
-                    >
-                      Sign Out
-                    </button>
-                  </li>
-                </ul>
-              </div>
+            {/* PROFILE DROPDOWN */}
+            <div ref={dropdownRef} className="relative">
+              <button
+                onClick={() => setIsDropdownOpen((p) => !p)}
+                className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-white/5"
+              >
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10">
+                  {user?.imageUrl ? (
+                    <AppImage
+                      src={user.imageUrl}
+                      width={32}
+                      height={32}
+                      alt="user"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 flex items-center justify-center text-xs text-white bg-zinc-800">
+                      {userDetails.initials}
+                    </div>
+                  )}
+                </div>
+
+                <span className="text-white text-sm hidden sm:block">
+                  {userDetails.displayName}
+                </span>
+
+                <ChevronDown className="h-4 w-4 text-white/60" />
+              </button>
+
+              {/* DROPDOWN MENU */}
+              {isDropdownOpen && (
+                <div className="absolute right-0 mt-3 w-56 rounded-2xl border border-white/10 bg-zinc-950 shadow-2xl overflow-hidden z-[99999]">
+                  <button
+                    onClick={() =>
+                      switchTab("profile", "/dashboard?tab=profile")
+                    }
+                    className="w-full text-left px-4 py-2 text-white hover:bg-white/5"
+                  >
+                    Profile
+                  </button>
+
+                  <button
+                    onClick={() => switchTab("files", "/dashboard")}
+                    className="w-full text-left px-4 py-2 text-white hover:bg-white/5"
+                  >
+                    My Files
+                  </button>
+
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </SignedIn>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* MOBILE BUTTONS */}
         <div className="md:hidden flex items-center gap-2">
           <SignedIn>
-            <div className="avatar placeholder">
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10">
               {user?.imageUrl ? (
-                <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <Image src={user.imageUrl} alt="User" width={32} height={32} />
-                </div>
+                <AppImage
+                  src={user.imageUrl}
+                  width={32}
+                  height={32}
+                  alt="user"
+                />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                <div className="w-8 h-8 flex items-center justify-center text-xs text-white bg-zinc-800">
                   {userDetails.initials}
                 </div>
               )}
             </div>
           </SignedIn>
-          <button
-            className="z-50 p-2"
-            onClick={toggleMobileMenu}
-            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-            data-menu-button="true"
-          >
+
+          <button onClick={toggleMobileMenu}>
             {isMobileMenuOpen ? (
-              <X className="h-6 w-6 text-default-700" />
+              <X className="text-white" />
             ) : (
-              <Menu className="h-6 w-6 text-default-700" />
+              <Menu className="text-white" />
             )}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Menu */}
+      {/* BACKDROP */}
+      {isMobileMenuOpen && (
         <div
-          ref={mobileMenuRef}
-          className={`fixed top-0 right-0 bottom-0 w-[80%] overflow-y-auto overflow-x-hidden bg-white z-50 flex flex-col pt-20 px-6 shadow-xl transform transition-transform duration-300 ease-in-out ${
-            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          } md:hidden`}
-        >
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={toggleMobileMenu}
+        />
+      )}
+
+      {/* MOBILE MENU */}
+      <div
+        className={`fixed top-0 right-0 h-screen w-[78%] max-w-[320px] bg-zinc-950 border-l border-white/10 z-50 transform transition-transform duration-300 md:hidden ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* HEADER */}
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
+          <div>
+            <h2 className="text-white font-bold text-lg">Droply</h2>
+            <p className="text-zinc-400 text-xs">Cloud Storage</p>
+          </div>
+
+          <button
+            onClick={toggleMobileMenu}
+            className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
+        </div>
+
+        {/* MENU ITEMS */}
+        <div className="p-5 space-y-3">
           <SignedOut>
             <button
-              onClick={() => router.push("/sign-in")}
-              className="px-5 py-2 bg-indigo-500 text-white rounded-lg mb-2"
+              onClick={() => {
+                toggleMobileMenu();
+                router.push("/sign-in");
+              }}
+              className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white"
             >
               Sign In
             </button>
+
             <button
-              onClick={() => router.push("/sign-up")}
-              className="px-5 py-2 bg-indigo-300 text-indigo-700 rounded-lg"
+              onClick={() => {
+                toggleMobileMenu();
+                router.push("/sign-up");
+              }}
+              className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium"
             >
               Sign Up
             </button>
@@ -265,28 +296,31 @@ export default function Navbar({ user, setActiveTab, initialTab }: NavbarProps) 
 
           <SignedIn>
             <button
-              className={`px-5 py-2 rounded-lg mb-2 ${
-                activeTab === "files"
-                  ? "bg-gray-200 text-indigo-700"
-                  : "bg-indigo-300 text-indigo-700 hover:bg-indigo-400"
-              }`}
-              onClick={() => switchTab("files", "/dashboard")}
+              onClick={() => {
+                toggleMobileMenu();
+                switchTab("files", "/dashboard");
+              }}
+              className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white"
             >
               My Files
             </button>
+
             <button
-              className={`px-5 py-2 rounded-lg mb-2 ${
-                activeTab === "profile"
-                  ? "bg-gray-200 text-indigo-700"
-                  : "bg-indigo-300 text-indigo-700 hover:bg-indigo-400"
-              }`}
-              onClick={() => switchTab("profile", "/dashboard?tab=profile")}
+              onClick={() => {
+                toggleMobileMenu();
+                switchTab("profile", "/dashboard?tab=profile");
+              }}
+              className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white"
             >
               Profile
             </button>
+
             <button
-              onClick={handleSignOut}
-              className="px-5 py-2 bg-red-500 text-white hover:bg-red-600 rounded-lg"
+              onClick={() => {
+                toggleMobileMenu();
+                handleSignOut();
+              }}
+              className="w-full py-3 rounded-xl bg-red-500/20 border border-red-500/20 text-red-300"
             >
               Sign Out
             </button>

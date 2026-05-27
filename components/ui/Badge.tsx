@@ -3,14 +3,8 @@ import React from "react";
 
 export type BadgeProps = {
   children: React.ReactNode;
-  color?:
-    | "default"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "warning"
-    | "danger";
-  variant?: "solid" | "flat" | "outline";
+  color?: "default" | "indigo" | "sky" | "success" | "warning" | "danger";
+  variant?: "solid" | "soft" | "outline";
   size?: "sm" | "md" | "lg";
   className?: string;
 };
@@ -18,57 +12,62 @@ export type BadgeProps = {
 export const Badge = ({
   children,
   color = "default",
-  variant = "solid",
+  variant = "soft",
   size = "md",
   className,
   ...props
 }: BadgeProps & React.HTMLAttributes<HTMLSpanElement>) => {
-  const colorStyles = {
+  const colors = {
     default: {
-      solid: "bg-default-500 text-white",
-      flat: "bg-default-100 text-default-800",
-      outline: "border border-default-300 text-default-800",
+      solid: "bg-white/10 text-white",
+      soft: "bg-white/5 text-white/70",
+      outline: "border border-white/10 text-white/70",
     },
-    primary: {
-      solid: "bg-primary text-white",
-      flat: "bg-primary-100 text-primary-800",
-      outline: "border border-primary-300 text-primary-800",
+
+    indigo: {
+      solid: "bg-indigo-500 text-white",
+      soft: "bg-indigo-500/10 text-indigo-300",
+      outline: "border border-indigo-500/30 text-indigo-300",
     },
-    secondary: {
-      solid: "bg-secondary text-white",
-      flat: "bg-secondary-100 text-secondary-800",
-      outline: "border border-secondary-300 text-secondary-800",
+
+    sky: {
+      solid: "bg-sky-500 text-white",
+      soft: "bg-sky-500/10 text-sky-300",
+      outline: "border border-sky-500/30 text-sky-300",
     },
+
     success: {
-      solid: "bg-success text-white",
-      flat: "bg-success-100 text-success-800",
-      outline: "border border-success-300 text-success-800",
+      solid: "bg-emerald-500 text-white",
+      soft: "bg-emerald-500/10 text-emerald-300",
+      outline: "border border-emerald-500/30 text-emerald-300",
     },
+
     warning: {
-      solid: "bg-warning text-white",
-      flat: "bg-warning-100 text-warning-800",
-      outline: "border border-warning-300 text-warning-800",
+      solid: "bg-amber-500 text-black",
+      soft: "bg-amber-500/10 text-amber-300",
+      outline: "border border-amber-500/30 text-amber-300",
     },
+
     danger: {
-      solid: "bg-danger text-white",
-      flat: "bg-danger-100 text-danger-800",
-      outline: "border border-danger-300 text-danger-800",
+      solid: "bg-red-500 text-white",
+      soft: "bg-red-500/10 text-red-300",
+      outline: "border border-red-500/30 text-red-300",
     },
   };
 
-  const sizeStyles = {
-    sm: "text-xs px-1.5 py-0.5 rounded",
-    md: "text-xs px-2 py-1 rounded-md",
-    lg: "text-sm px-2.5 py-1 rounded-md",
+  const sizes = {
+    sm: "text-[10px] px-2 py-0.5",
+    md: "text-xs px-2.5 py-1",
+    lg: "text-sm px-3 py-1.5",
   };
 
   return (
     <span
       className={cn(
-        "inline-flex items-center justify-center font-medium",
-        colorStyles[color][variant],
-        sizeStyles[size],
-        className
+        "inline-flex items-center justify-center rounded-full font-medium backdrop-blur-md",
+        colors[color][variant],
+        sizes[size],
+        className,
       )}
       {...props}
     >

@@ -1,133 +1,127 @@
-// "use client";
-
-// import { IKImage } from "imagekitio-react";
-// import type { File as FileType } from "@/lib/db/schema";
-// import { getIKPath } from "@/lib/imagekit";
-// import { Folder, FileText, Play } from "lucide-react";
-
-// interface FileIconProps {
-//   file: FileType;
-// }
-
-// export default function FileIcon({ file }: FileIconProps) {
-//   // Folder icon
-//   if (file.isFolder) {
-//     return <Folder className="h-5 w-5 text-blue-500" />;
-//   }
-
-//   const fileType = file.type?.split("/")[0];
-
-//   // IMAGE PREVIEW
-//   if (fileType === "image") {
-//     const normalizedPath = getIKPath(file.path);
-
-//     return (
-//       <div className="h-12 w-12 relative overflow-hidden rounded-xl bg-base-200 shadow-sm">
-//         {normalizedPath ? (
-//           <IKImage
-//             urlEndpoint={process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT!}
-//             path={normalizedPath}
-//             transformation={[
-//               {
-//                 height: 48,
-//                 width: 48,
-//                 focus: "auto",
-//                 quality: 80,
-//                 dpr: 2,
-//               },
-//             ]}
-//             loading="lazy"
-//             lqip={{ active: true }}
-//             alt={file.name}
-//             className="object-cover w-full h-full"
-//           />
-//         ) : (
-//           <span className="text-gray-400 text-xs flex items-center justify-center h-full">
-//             No preview
-//           </span>
-//         )}
-//       </div>
-//     );
-//   }
-
-//   // CLEAN VIDEO STYLE
-//   if (fileType === "video") {
-//     return (
-//       <div >
-//         <Play className="h-5 w-5 text-purple-600" />
-//       </div>
-//     );
-//   }
-
-//   // PDF
-//   if (file.type?.includes("pdf")) {
-//     return <FileText className="h-5 w-5 text-red-500" />;
-//   }
-
-//   // Other application files
-//   if (fileType === "application") {
-//     return <FileText className="h-5 w-5 text-orange-500" />;
-//   }
-
-//   // Default icon
-//   return <FileText className="h-5 w-5 text-gray-500" />;
-// }
-
-
-
 "use client";
 
 import type { File as FileType } from "@/lib/db/schema";
-import { Folder, FileText, Play } from "lucide-react";
-import Image from "next/image";
+import AppImage from "@/components/AppImage";
+
+import {
+  Folder,
+  FileText,
+  Play,
+  FileArchive,
+  Image as ImageIcon,
+  Music2,
+  FileSpreadsheet,
+  FileCode,
+} from "lucide-react";
 
 interface FileIconProps {
   file: FileType;
 }
 
 export default function FileIcon({ file }: FileIconProps) {
-  // Folder icon
+  const baseClass =
+    "flex h-14 w-14 items-center justify-center rounded-2xl border";
+
+  // Folder
   if (file.isFolder) {
-    return <Folder className="h-5 w-5 text-blue-500" />;
+    return (
+      <div className={`${baseClass} border-indigo-500/20 bg-indigo-500/10`}>
+        <Folder className="h-6 w-6 text-sky-400" />
+      </div>
+    );
   }
 
   const fileType = file.type?.split("/")[0];
 
-  // IMAGE ICON (thumbnail preview using fileUrl)
+  // Image Preview
   if (fileType === "image") {
     return (
-      <div className="h-12 w-12 overflow-hidden rounded-xl bg-base-200 shadow-sm">
+      <div className="group relative h-14 w-14 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900">
         {file.fileUrl ? (
-          <Image
+          <AppImage
             src={file.fileUrl}
             alt={file.name}
-            className="object-cover w-full h-full"
-            loading="lazy"
+            fill
+            sizes="56px"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <span className="text-gray-400 text-xs flex items-center justify-center h-full">
-            No preview
-          </span>
+          <div className="flex h-full items-center justify-center">
+            <ImageIcon className="h-5 w-5 text-zinc-500" />
+          </div>
         )}
       </div>
     );
   }
 
-  // VIDEO
+  // Video
   if (fileType === "video") {
-    return <Play className="h-5 w-5 text-purple-600" />;
+    return (
+      <div className={`${baseClass} border-purple-500/20 bg-purple-500/10`}>
+        <Play className="h-5 w-5 text-purple-400" />
+      </div>
+    );
+  }
+
+  // Audio
+  if (fileType === "audio") {
+    return (
+      <div className={`${baseClass} border-pink-500/20 bg-pink-500/10`}>
+        <Music2 className="h-5 w-5 text-pink-400" />
+      </div>
+    );
   }
 
   // PDF
   if (file.type?.includes("pdf")) {
-    return <FileText className="h-5 w-5 text-red-500" />;
+    return (
+      <div className={`${baseClass} border-red-500/20 bg-red-500/10`}>
+        <FileText className="h-5 w-5 text-red-400" />
+      </div>
+    );
   }
 
-  // OTHER APPLICATION FILES
+  // Spreadsheet
+  if (
+    file.type?.includes("sheet") ||
+    file.name.endsWith(".xlsx") ||
+    file.name.endsWith(".csv")
+  ) {
+    return (
+      <div className={`${baseClass} border-green-500/20 bg-green-500/10`}>
+        <FileSpreadsheet className="h-5 w-5 text-green-400" />
+      </div>
+    );
+  }
+
+  // Code Files
+  if (
+    file.name.endsWith(".js") ||
+    file.name.endsWith(".ts") ||
+    file.name.endsWith(".tsx") ||
+    file.name.endsWith(".jsx") ||
+    file.name.endsWith(".json")
+  ) {
+    return (
+      <div className={`${baseClass} border-cyan-500/20 bg-cyan-500/10`}>
+        <FileCode className="h-5 w-5 text-cyan-400" />
+      </div>
+    );
+  }
+
+  // Archive / Application Files
   if (fileType === "application") {
-    return <FileText className="h-5 w-5 text-orange-500" />;
+    return (
+      <div className={`${baseClass} border-orange-500/20 bg-orange-500/10`}>
+        <FileArchive className="h-5 w-5 text-orange-400" />
+      </div>
+    );
   }
 
-  // DEFAULT ICON
-  return <FileText className="h-5 w-5 text-gray-500" />;
+  // Default
+  return (
+    <div className={`${baseClass} border-zinc-800 bg-zinc-900`}>
+      <FileText className="h-5 w-5 text-zinc-400" />
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpFromLine } from "lucide-react";
+import { ArrowUp, Home, ChevronRight, Folder } from "lucide-react";
 
 interface FolderNavigationProps {
   folderPath: Array<{ id: string; name: string }>;
@@ -14,38 +14,60 @@ export default function FolderNavigation({
   navigateToPathFolder,
 }: FolderNavigationProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 text-sm overflow-x-auto pb-2">
-      {/* Navigate Up Button */}
+    <div className="flex items-center gap-1 px-3 py-2 rounded-xl backdrop-blur-md border border-white/10 shadow-sm overflow-x-auto scrollbar-hide">
+      {/* Up */}
       <button
         onClick={navigateUp}
         disabled={folderPath.length === 0}
-        className={`p-1 rounded hover:bg-default-100 transition ${folderPath.length === 0 ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`p-2 rounded-lg transition hover:bg-white/10 active:scale-95
+          ${
+            folderPath.length === 0
+              ? "opacity-40 cursor-not-allowed"
+              : "text-zinc-300"
+          }`}
         title="Go up"
       >
-        <ArrowUpFromLine className="h-4 w-4" />
+        <ArrowUp className="h-4 w-4" />
       </button>
 
-      {/* Home Button */}
+      {/* Home */}
       <button
         onClick={() => navigateToPathFolder(-1)}
-        className={`p-1 rounded hover:bg-default-100 transition ${folderPath.length === 0 ? "font-bold" : ""}`}
+        className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition hover:bg-white/10 active:scale-95 text-sm
+          ${
+            folderPath.length === 0
+              ? "bg-indigo-500/10 text-indigo-400 font-medium"
+              : "text-zinc-300"
+          }`}
       >
-        Home
+        <Home className="h-4 w-4" />
+        <span>Home</span>
       </button>
 
-      {/* Folder Path */}
-      {folderPath.map((folder, index) => (
-        <div key={folder.id} className="flex items-center">
-          <span className="mx-1 text-default-400">/</span>
-          <button
-            onClick={() => navigateToPathFolder(index)}
-            className={`p-1 rounded hover:bg-default-100 transition overflow-hidden text-ellipsis max-w-[150px] ${index === folderPath.length - 1 ? "font-bold" : ""}`}
-            title={folder.name}
-          >
-            {folder.name}
-          </button>
-        </div>
-      ))}
+      {/* Breadcrumbs */}
+      {folderPath.map((folder, index) => {
+        const isLast = index === folderPath.length - 1;
+
+        return (
+          <div key={folder.id} className="flex items-center gap-1">
+            <ChevronRight className="h-4 w-4 text-zinc-600" />
+
+            <button
+              onClick={() => navigateToPathFolder(index)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg transition max-w-[160px] truncate text-sm hover:bg-white/10 active:scale-95
+                ${
+                  isLast
+                    ? "bg-indigo-500/10 text-indigo-400 font-medium"
+                    : "text-zinc-400"
+                }`}
+              title={folder.name}
+            >
+              <Folder className="h-4 w-4" />
+              <span className="truncate">{folder.name}</span>
+            </button>
+          </div>
+        );
+      })}
     </div>
   );
 }

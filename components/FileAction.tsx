@@ -1,6 +1,6 @@
 "use client";
 
-import { Star, Trash, X, ArrowUpFromLine, ExternalLink, ArrowDownToLine } from "lucide-react";
+import { Star, Trash, X, ArrowUpFromLine, ExternalLink } from "lucide-react";
 import type { File as FileType } from "@/lib/db/schema";
 
 interface FileActionsProps {
@@ -9,7 +9,6 @@ interface FileActionsProps {
   onTrash: (id: string) => void;
   onDelete: (file: FileType) => void;
   onShare?: (file: FileType) => void;
-  onDownload?: (file: FileType) => void;
 }
 
 export default function FileActions({
@@ -18,85 +17,74 @@ export default function FileActions({
   onTrash,
   onDelete,
   onShare,
-  onDownload,
 }: FileActionsProps) {
   return (
-    <div className="flex flex-wrap gap-1.5 justify-end">
-      {/* Share button */}
+    <div className="flex items-center gap-2 justify-end flex-wrap">
+      {/* Share */}
       {!file.isTrash && !file.isFolder && onShare && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onShare(file);
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium shadow-sm transition"
+          className="p-2 rounded-lg bg-white/60 hover:bg-blue-50 text-blue-600 border border-gray-200 hover:border-blue-200 transition shadow-sm"
+          title="Share"
         >
-          <ExternalLink className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Take it</span>
+          <ExternalLink className="h-4 w-4" />
         </button>
       )}
 
-      {/* Download button */}
-      {!file.isTrash && !file.isFolder && onDownload && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDownload(file);
-          }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-500 hover:bg-green-600 text-white text-xs font-medium shadow-sm transition"
-        >
-          <ArrowDownToLine className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Download</span>
-        </button>
-      )}
-
-      {/* Star / Unstar button */}
+      {/* Star */}
       {!file.isTrash && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onStar(file.id);
           }}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition ${
+          className={`p-2 rounded-lg border transition shadow-sm ${
             file.isStarred
-              ? "bg-yellow-400 hover:bg-yellow-500 text-white"
-              : "bg-gray-200 hover:bg-gray-300 text-gray-800"
+              ? "bg-yellow-100 text-yellow-600 border-yellow-300 hover:bg-yellow-200"
+              : "bg-white/60 text-gray-600 border-gray-200 hover:bg-gray-100"
           }`}
+          title={file.isStarred ? "Unstar" : "Star"}
         >
           <Star
-            className={`h-3.5 w-3.5 ${file.isStarred ? "fill-current" : "stroke-current"}`}
+            className={`h-4 w-4 ${file.isStarred ? "fill-yellow-500" : ""}`}
           />
-          <span className="hidden sm:inline">{file.isStarred ? "Unstar" : "Star"}</span>
         </button>
       )}
 
-      {/* Trash / Restore button */}
+      {/* Trash / Restore */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onTrash(file.id);
         }}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition ${
+        className={`p-2 rounded-lg border transition shadow-sm ${
           file.isTrash
-            ? "bg-green-500 hover:bg-green-600 text-white"
-            : "bg-red-500 hover:bg-red-600 text-white"
+            ? "bg-green-100 text-green-600 border-green-300 hover:bg-green-200"
+            : "bg-red-100 text-red-600 border-red-300 hover:bg-red-200"
         }`}
+        title={file.isTrash ? "Restore" : "Move to Trash"}
       >
-        {file.isTrash ? <ArrowUpFromLine className="h-3.5 w-3.5" /> : <Trash className="h-3.5 w-3.5" />}
-        <span className="hidden sm:inline">{file.isTrash ? "Restore" : "Delete"}</span>
+        {file.isTrash ? (
+          <ArrowUpFromLine className="h-4 w-4" />
+        ) : (
+          <Trash className="h-4 w-4" />
+        )}
       </button>
 
-      {/* Delete permanently button */}
+      {/* Delete permanently */}
       {file.isTrash && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onDelete(file);
           }}
-          className="bg-red-500 hover:bg-red-600 text-white flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium shadow-sm transition"
+          className="p-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition shadow-sm"
+          title="Delete permanently"
         >
-          <X className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">Remove</span>
+          <X className="h-4 w-4" />
         </button>
       )}
     </div>
